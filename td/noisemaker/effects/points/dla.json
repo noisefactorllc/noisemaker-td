@@ -1,0 +1,158 @@
+{
+  "name": "Dla",
+  "namespace": "points",
+  "func": "dla",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Diffusion-limited aggregation",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "uniform": "stateSize"
+    },
+    "anchorDensity": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "anchorDensity",
+      "min": 0.01,
+      "max": 5
+    },
+    "stride": {
+      "type": "float",
+      "default": 15,
+      "uniform": "stride",
+      "min": 1,
+      "max": 50
+    },
+    "inputWeight": {
+      "type": "float",
+      "default": 15,
+      "uniform": "inputWeight",
+      "min": 0,
+      "max": 100
+    },
+    "decay": {
+      "type": "float",
+      "default": 0.25,
+      "uniform": "decay",
+      "min": 0,
+      "max": 0.5
+    },
+    "deposit": {
+      "type": "float",
+      "default": 17.5,
+      "uniform": "deposit",
+      "min": 0.5,
+      "max": 20
+    },
+    "attrition": {
+      "type": "float",
+      "default": 7.5,
+      "uniform": "attrition",
+      "min": 0,
+      "max": 10
+    },
+    "matteOpacity": {
+      "type": "float",
+      "default": 1,
+      "uniform": "matteOpacity",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "initGrid",
+      "program": "initGrid",
+      "inputs": {
+        "gridTex": "global_dla_grid"
+      },
+      "uniforms": {
+        "decay": "decay",
+        "anchorDensity": "anchorDensity"
+      },
+      "outputs": {
+        "fragColor": "global_dla_grid"
+      }
+    },
+    {
+      "name": "copyGrid",
+      "program": "copyGrid",
+      "inputs": {
+        "gridTex": "global_dla_grid"
+      },
+      "outputs": {
+        "fragColor": "global_dla_grid"
+      }
+    },
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "gridTex": "global_dla_grid",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "stride": "stride",
+        "inputWeight": "inputWeight",
+        "attrition": "attrition",
+        "stateSize": "stateSize"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "depositGrid",
+      "program": "depositGrid",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba"
+      },
+      "uniforms": {
+        "deposit": "deposit"
+      },
+      "outputs": {
+        "fragColor": "global_dla_grid"
+      },
+      "drawMode": "points",
+      "count": "input",
+      "blend": [
+        "one",
+        "one"
+      ]
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex",
+        "gridTex": "global_dla_grid"
+      },
+      "uniforms": {
+        "matteOpacity": "matteOpacity"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_dla_grid": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  }
+}

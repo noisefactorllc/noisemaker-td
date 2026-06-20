@@ -1,0 +1,225 @@
+{
+  "name": "ColorLab",
+  "namespace": "classicNoisedeck",
+  "func": "colorLab",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Color manipulation lab",
+  "paramAliases": {},
+  "globals": {
+    "colorMode": {
+      "type": "int",
+      "default": 2,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "linearRgb": 1,
+        "srgbDefault": 2,
+        "oklab": 3,
+        "palette": 4
+      }
+    },
+    "palette": {
+      "type": "palette",
+      "default": 46,
+      "uniform": "palette",
+      "choices": {
+        "none": 0,
+        "seventiesShirt": 1,
+        "fiveG": 2,
+        "afterimage": 3,
+        "barstow": 4,
+        "bloob": 5,
+        "blueSkies": 6,
+        "brushedMetal": 7,
+        "burningSky": 8,
+        "california": 9,
+        "columbia": 10,
+        "cottonCandy": 11,
+        "darkSatin": 12,
+        "dealerHat": 13,
+        "dreamy": 14,
+        "eventHorizon": 15,
+        "ghostly": 16,
+        "grayscale": 17,
+        "hazySunset": 18,
+        "heatmap": 19,
+        "hypercolor": 20,
+        "jester": 21,
+        "justBlue": 22,
+        "justCyan": 23,
+        "justGreen": 24,
+        "justPurple": 25,
+        "justRed": 26,
+        "justYellow": 27,
+        "mars": 28,
+        "modesto": 29,
+        "moss": 30,
+        "neptune": 31,
+        "netOfGems": 32,
+        "organic": 33,
+        "papaya": 34,
+        "radioactive": 35,
+        "royal": 36,
+        "santaCruz": 37,
+        "sherbet": 38,
+        "sherbetDouble": 39,
+        "silvermane": 40,
+        "skykissed": 41,
+        "solaris": 42,
+        "spooky": 43,
+        "springtime": 44,
+        "sproingtime": 45,
+        "sulphur": 46,
+        "summoning": 47,
+        "superhero": 48,
+        "toxic": 49,
+        "tropicalia": 50,
+        "tungsten": 51,
+        "vaporwave": 52,
+        "vibrant": 53,
+        "vintage": 54,
+        "vintagePhoto": 55
+      }
+    },
+    "paletteMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "paletteMode"
+    },
+    "paletteOffset": {
+      "type": "vec3",
+      "default": [
+        0.83,
+        0.6,
+        0.63
+      ],
+      "uniform": "paletteOffset"
+    },
+    "paletteAmp": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "paletteAmp"
+    },
+    "paletteFreq": {
+      "type": "vec3",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "paletteFreq"
+    },
+    "palettePhase": {
+      "type": "vec3",
+      "default": [
+        0.3,
+        0.1,
+        0
+      ],
+      "uniform": "palettePhase"
+    },
+    "cyclePalette": {
+      "type": "int",
+      "default": 1,
+      "uniform": "cyclePalette",
+      "choices": {
+        "off": 0,
+        "forward": 1,
+        "backward": -1
+      }
+    },
+    "rotatePalette": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotatePalette",
+      "min": 0,
+      "max": 100
+    },
+    "repeatPalette": {
+      "type": "int",
+      "default": 1,
+      "uniform": "repeatPalette",
+      "min": 1,
+      "max": 10
+    },
+    "hueRotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hueRotation",
+      "min": 0,
+      "max": 360
+    },
+    "hueRange": {
+      "type": "float",
+      "default": 100,
+      "uniform": "hueRange",
+      "min": 0,
+      "max": 200
+    },
+    "saturation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "saturation",
+      "min": -100,
+      "max": 100
+    },
+    "invert": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "invert"
+    },
+    "brightness": {
+      "type": "float",
+      "default": 0,
+      "uniform": "brightness",
+      "min": -100,
+      "max": 100
+    },
+    "contrast": {
+      "type": "float",
+      "default": 50,
+      "uniform": "contrast",
+      "min": 0,
+      "max": 100
+    },
+    "levels": {
+      "type": "int",
+      "default": 0,
+      "uniform": "levels",
+      "min": 0,
+      "max": 32
+    },
+    "dither": {
+      "type": "int",
+      "default": 0,
+      "uniform": "dither",
+      "choices": {
+        "none": 0,
+        "threshold": 1,
+        "random": 2,
+        "randomTime": 3,
+        "bayer": 4
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "colorLab",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

@@ -1,0 +1,96 @@
+{
+  "name": "Physical",
+  "namespace": "points",
+  "func": "physical",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Physics-based particle simulation with wind and gravity forces",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "uniform": "stateSize"
+    },
+    "gravity": {
+      "type": "float",
+      "default": 0.05,
+      "uniform": "gravity",
+      "min": -2,
+      "max": 2
+    },
+    "wind": {
+      "type": "float",
+      "default": 0,
+      "uniform": "wind",
+      "min": -2,
+      "max": 2
+    },
+    "energy": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "energy",
+      "min": 0,
+      "max": 2
+    },
+    "drag": {
+      "type": "float",
+      "default": 0.15,
+      "uniform": "drag",
+      "min": 0,
+      "max": 0.2
+    },
+    "deviation": {
+      "type": "float",
+      "default": 0.75,
+      "uniform": "deviation",
+      "min": 0,
+      "max": 1
+    },
+    "wander": {
+      "type": "float",
+      "default": 0.25,
+      "uniform": "wander",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba"
+      },
+      "uniforms": {
+        "gravity": "gravity",
+        "wind": "wind",
+        "energy": "energy",
+        "drag": "drag",
+        "deviation": "deviation",
+        "wander": "wander"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

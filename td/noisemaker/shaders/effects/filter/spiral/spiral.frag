@@ -1,0 +1,107 @@
+// NM_INPUTS: inputTex=0
+// NM_OUTPUT: fragColor
+#define inputTex sTD2DInputs[0]
+/*
+ * Spiral distortion
+ */
+
+
+
+uniform vec2 resolution;
+uniform vec2 tileOffset;
+uniform vec2 fullResolution;
+uniform float time;
+uniform float strength;
+uniform int speed;
+uniform bool aspectLens;
+uniform int wrap;
+uniform float rotation;
+uniform bool antialias;
+
+out vec4 fragColor;
+
+#define PI 3.14159265359
+#define TAU 6.28318530718
+
+vec2 rotate2D(vec2 st, float rot, float aspectRatio) {
+    st.x *= aspectRatio;
+    float angle = rot * PI;
+    st -= vec2(0.5 * aspectRatio, 0.5);
+    st = mat2(cos(angle), -sin(angle), sin(angle), cos(angle)) * st;
+    st += vec2(0.5 * aspectRatio, 0.5);
+    st.x /= aspectRatio;
+    return st;
+}
+
+void nm_main() {
+    // Compute distortion in global UV space so the spiral center is
+    // at the full image center, not each tile's center.
+    float aspectRatio = fullResolution.x / fullResolution.y;
+    vec2 globalCoord = gl_FragCoord.xy + tileOffset;
+    vec2 uv = globalCoord / fullResolution;
+
+    // Apply rotation before distortion
+    uv = rotate2D(uv, rotation / 180.0, aspectRatio);
+
+    uv -= 0.5;
+
+    if (aspectLens) {
+        uv.x *= aspectRatio;
+    }
+
+    // Convert to polar coordinates
+    float r = length(uv);
+    float a = atan(uv.y, uv.x);
+
+    // Apply spiral distortion
+    float spiralAmt = (strength * 0.05) * r;
+    a += spiralAmt - (time * TAU * float(speed) * sign(strength));
+
+    // Convert back to cartesian coordinates
+    uv = vec2(cos(a), sin(a)) * r;
+
+    if (aspectLens) {
+        uv.x /= aspectRatio;
+    }
+
+    uv += 0.5;
+
+    // Apply wrap mode
+    if (wrap == 0) {
+        // mirror
+        uv = abs(mod(uv + 1.0, 2.0) - 1.0);
+    } else if (wrap == 1) {
+        // repeat
+        uv = mod(uv, 1.0);
+    } else {
+        // clamp
+        uv = clamp(uv, 0.0, 1.0);
+    }
+
+    // Reverse rotation after distortion
+    uv = rotate2D(uv, -rotation / 180.0, aspectRatio);
+
+    // Convert distorted global UV back to tile-local for texture sampling.
+    // When not tiling, tileOffset=0 and fullResolution=resolution, so this
+    // is a no-op (identity transform). Clamp to tile bounds so that wrap
+    // modes referencing other parts of the image don't sample past this
+    // tile's coverage (producing edge-clamped stripes).
+    vec2 sampleUV = clamp((uv * fullResolution - tileOffset) / resolution, 0.0, 1.0);
+
+    if (antialias) {
+        vec2 dx = dFdx(sampleUV);
+        vec2 dy = dFdy(sampleUV);
+        vec4 col = vec4(0.0);
+        col += texture(inputTex, sampleUV + dx * -0.375 + dy * -0.125);
+        col += texture(inputTex, sampleUV + dx *  0.125 + dy * -0.375);
+        col += texture(inputTex, sampleUV + dx *  0.375 + dy *  0.125);
+        col += texture(inputTex, sampleUV + dx * -0.125 + dy *  0.375);
+        fragColor = col * 0.25;
+    } else {
+        fragColor = texture(inputTex, sampleUV);
+    }
+}
+void main() {
+    nm_main();
+    fragColor = TDOutputSwizzle(fragColor);
+}

@@ -1,0 +1,110 @@
+{
+  "name": "Gradient",
+  "namespace": "synth",
+  "func": "gradient",
+  "starter": true,
+  "tags": [
+    "color"
+  ],
+  "description": "Multi-color gradient generator with various styles",
+  "paramAliases": {},
+  "globals": {
+    "type": {
+      "type": "int",
+      "default": 0,
+      "uniform": "gradientType",
+      "choices": {
+        "conic": 0,
+        "diamond": 1,
+        "fourCorners": 2,
+        "linear": 3,
+        "noiseGradient": 4,
+        "radial": 5,
+        "spiral": 6
+      }
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "repeat": {
+      "type": "int",
+      "default": 1,
+      "uniform": "repeat",
+      "min": 1,
+      "max": 4
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -5,
+      "max": 5,
+      "zero": 0
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 0,
+      "max": 100
+    },
+    "color1": {
+      "type": "color",
+      "default": [
+        1,
+        0,
+        0
+      ],
+      "uniform": "color1"
+    },
+    "color2": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        0
+      ],
+      "uniform": "color2"
+    },
+    "color3": {
+      "type": "color",
+      "default": [
+        0,
+        1,
+        0
+      ],
+      "uniform": "color3"
+    },
+    "color4": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        1
+      ],
+      "uniform": "color4"
+    },
+    "colorCount": {
+      "type": "int",
+      "default": 4,
+      "uniform": "colorCount",
+      "min": 2,
+      "max": 4
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "gradient",
+      "inputs": {},
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

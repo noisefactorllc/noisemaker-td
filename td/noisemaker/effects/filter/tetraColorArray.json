@@ -1,0 +1,221 @@
+{
+  "name": "TetraColorArray",
+  "namespace": "filter",
+  "func": "tetraColorArray",
+  "starter": false,
+  "tags": [
+    "color",
+    "palette"
+  ],
+  "description": "Apply Tetra color array palettes based on luminance",
+  "paramAliases": {},
+  "globals": {
+    "colorMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "colorMode",
+      "choices": {
+        "rgb": 0,
+        "hsv": 1,
+        "oklab": 2,
+        "oklch": 3
+      }
+    },
+    "colorCount": {
+      "type": "int",
+      "default": 6,
+      "uniform": "colorCount",
+      "min": 2,
+      "max": 8
+    },
+    "positionMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "positionMode",
+      "choices": {
+        "auto": 0,
+        "manual": 1
+      }
+    },
+    "color0": {
+      "type": "color",
+      "default": [
+        1,
+        0,
+        0
+      ],
+      "uniform": "color0"
+    },
+    "color1": {
+      "type": "color",
+      "default": [
+        1,
+        0.5,
+        0
+      ],
+      "uniform": "color1"
+    },
+    "color2": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        0
+      ],
+      "uniform": "color2"
+    },
+    "color3": {
+      "type": "color",
+      "default": [
+        0,
+        1,
+        0
+      ],
+      "uniform": "color3"
+    },
+    "color4": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        1
+      ],
+      "uniform": "color4"
+    },
+    "color5": {
+      "type": "color",
+      "default": [
+        0.58,
+        0,
+        0.83
+      ],
+      "uniform": "color5"
+    },
+    "color6": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "color6"
+    },
+    "color7": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "color7"
+    },
+    "pos0": {
+      "type": "float",
+      "default": 0,
+      "uniform": "pos0",
+      "min": 0,
+      "max": 1
+    },
+    "pos1": {
+      "type": "float",
+      "default": 0.14,
+      "uniform": "pos1",
+      "min": 0,
+      "max": 1
+    },
+    "pos2": {
+      "type": "float",
+      "default": 0.29,
+      "uniform": "pos2",
+      "min": 0,
+      "max": 1
+    },
+    "pos3": {
+      "type": "float",
+      "default": 0.43,
+      "uniform": "pos3",
+      "min": 0,
+      "max": 1
+    },
+    "pos4": {
+      "type": "float",
+      "default": 0.57,
+      "uniform": "pos4",
+      "min": 0,
+      "max": 1
+    },
+    "pos5": {
+      "type": "float",
+      "default": 0.71,
+      "uniform": "pos5",
+      "min": 0,
+      "max": 1
+    },
+    "pos6": {
+      "type": "float",
+      "default": 0.86,
+      "uniform": "pos6",
+      "min": 0,
+      "max": 1
+    },
+    "pos7": {
+      "type": "float",
+      "default": 1,
+      "uniform": "pos7",
+      "min": 0,
+      "max": 1
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "choices": {
+        "none": 0,
+        "fwd": 1,
+        "back": -1
+      }
+    },
+    "repeat": {
+      "type": "float",
+      "default": 1,
+      "uniform": "repeat",
+      "min": 0,
+      "max": 10
+    },
+    "offset": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offset",
+      "min": 0,
+      "max": 1
+    },
+    "alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 1,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "tetraColorArray",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\nnoise()\n  .tetraColorArray(smoothness: 0)\n  .write(o0)"
+}

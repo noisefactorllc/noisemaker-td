@@ -1,0 +1,56 @@
+{
+  "name": "Motion Blur",
+  "namespace": "filter",
+  "func": "motionBlur",
+  "starter": false,
+  "tags": [
+    "lens",
+    "blur"
+  ],
+  "description": "Simple motion blur via frame blending",
+  "paramAliases": {},
+  "globals": {
+    "amount": {
+      "type": "float",
+      "default": 50,
+      "uniform": "amount",
+      "min": 0,
+      "max": 100
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "motionBlur",
+      "inputs": {
+        "inputTex": "inputTex",
+        "selfTex": "_selfTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    },
+    {
+      "name": "feedback",
+      "program": "copy",
+      "inputs": {
+        "inputTex": "outputTex"
+      },
+      "outputs": {
+        "fragColor": "_selfTex"
+      }
+    }
+  ],
+  "textures": {
+    "_selfTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

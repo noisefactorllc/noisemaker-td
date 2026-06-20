@@ -1,0 +1,218 @@
+{
+  "name": "Points Billboard Render",
+  "namespace": "render",
+  "func": "pointsBillboardRender",
+  "starter": false,
+  "tags": [
+    "agents"
+  ],
+  "description": "Render particles as billboard sprites",
+  "paramAliases": {
+    "rotationVariation": "rotationVar"
+  },
+  "globals": {
+    "shapeMode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "shapeMode",
+      "choices": {
+        "texture": 0,
+        "circle": 1,
+        "ring": 2,
+        "square": 3,
+        "diamond": 4,
+        "triangle": 5,
+        "star": 6,
+        "soft": 7
+      }
+    },
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "depositOpacity": {
+      "type": "float",
+      "default": 20,
+      "uniform": "depositOpacity",
+      "min": 1,
+      "max": 100
+    },
+    "pointSize": {
+      "type": "float",
+      "default": 8,
+      "uniform": "pointSize",
+      "min": 1,
+      "max": 64
+    },
+    "sizeVariation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "sizeVariation",
+      "min": 0,
+      "max": 100
+    },
+    "rotationVar": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotationVar",
+      "min": 0,
+      "max": 100
+    },
+    "seed": {
+      "type": "int",
+      "default": 42,
+      "uniform": "seed",
+      "min": 0,
+      "max": 1000
+    },
+    "density": {
+      "type": "float",
+      "default": 50,
+      "uniform": "density",
+      "min": 0,
+      "max": 100
+    },
+    "intensity": {
+      "type": "float",
+      "default": 75,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 100
+    },
+    "inputIntensity": {
+      "type": "float",
+      "default": 10.15,
+      "uniform": "inputIntensity",
+      "min": 0,
+      "max": 100
+    },
+    "viewMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "viewMode",
+      "choices": {
+        "flat": 0,
+        "ortho": 1
+      }
+    },
+    "rotateX": {
+      "type": "float",
+      "default": 0.3,
+      "uniform": "rotateX",
+      "min": 0,
+      "max": 6.283185
+    },
+    "rotateY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateY",
+      "min": 0,
+      "max": 6.283185
+    },
+    "rotateZ": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateZ",
+      "min": 0,
+      "max": 6.283185
+    },
+    "viewScale": {
+      "type": "float",
+      "default": 0.8,
+      "uniform": "viewScale",
+      "min": 0.1,
+      "max": 10
+    },
+    "posX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "posX",
+      "min": -50,
+      "max": 50
+    },
+    "posY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "posY",
+      "min": -50,
+      "max": 50
+    }
+  },
+  "passes": [
+    {
+      "name": "diffuse",
+      "program": "diffuse",
+      "inputs": {
+        "trailTex": "global_billboard_trail"
+      },
+      "uniforms": {
+        "intensity": "intensity"
+      },
+      "outputs": {
+        "fragColor": "global_billboard_trail"
+      }
+    },
+    {
+      "name": "copy",
+      "program": "copy",
+      "inputs": {
+        "sourceTex": "global_billboard_trail"
+      },
+      "outputs": {
+        "fragColor": "global_billboard_trail"
+      }
+    },
+    {
+      "name": "deposit",
+      "program": "deposit",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "rgbaTex": "global_rgba",
+        "spriteTex": "tex"
+      },
+      "uniforms": {
+        "shapeMode": "shapeMode",
+        "depositOpacity": "depositOpacity",
+        "density": "density",
+        "pointSize": "pointSize",
+        "sizeVariation": "sizeVariation",
+        "rotationVar": "rotationVar",
+        "seed": "seed",
+        "viewMode": "viewMode",
+        "rotateX": "rotateX",
+        "rotateY": "rotateY",
+        "rotateZ": "rotateZ",
+        "viewScale": "viewScale",
+        "posX": "posX",
+        "posY": "posY"
+      },
+      "outputs": {
+        "fragColor": "global_billboard_trail"
+      },
+      "drawMode": "billboards",
+      "count": "input",
+      "blend": true
+    },
+    {
+      "name": "blend",
+      "program": "blend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "trailTex": "global_billboard_trail"
+      },
+      "uniforms": {
+        "inputIntensity": "inputIntensity"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_billboard_trail": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  }
+}

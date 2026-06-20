@@ -1,0 +1,66 @@
+{
+  "name": "Scale",
+  "namespace": "filter",
+  "func": "scale",
+  "starter": false,
+  "tags": [
+    "transform"
+  ],
+  "description": "Scale transform",
+  "paramAliases": {},
+  "globals": {
+    "x": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "scaleX",
+      "min": 0,
+      "max": 10,
+      "zero": 1
+    },
+    "y": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "scaleY",
+      "min": 0,
+      "max": 10,
+      "zero": 1
+    },
+    "centerX": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "centerX",
+      "min": 0,
+      "max": 1
+    },
+    "centerY": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "centerY",
+      "min": 0,
+      "max": 1
+    },
+    "wrap": {
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "scale",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

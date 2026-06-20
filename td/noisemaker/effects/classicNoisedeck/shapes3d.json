@@ -1,0 +1,339 @@
+{
+  "name": "Shapes3d",
+  "namespace": "classicNoisedeck",
+  "func": "shapes3d",
+  "starter": true,
+  "tags": [
+    "geometric"
+  ],
+  "description": "3D geometric shapes",
+  "paramAliases": {
+    "backgroundColor": "bgColor",
+    "backgroundOpacity": "bgAlpha"
+  },
+  "globals": {
+    "shapeA": {
+      "type": "int",
+      "default": 30,
+      "define": "SHAPE_A",
+      "choices": {
+        "capsuleHoriz": 70,
+        "capsuleVert": 60,
+        "cube": 10,
+        "cylinderHoriz": 50,
+        "cylinderVert": 40,
+        "octahedron": 80,
+        "sphere": 20,
+        "torusHoriz": 31,
+        "torusVert": 30
+      }
+    },
+    "shapeB": {
+      "type": "int",
+      "default": 10,
+      "define": "SHAPE_B",
+      "choices": {
+        "capsuleHoriz": 70,
+        "capsuleVert": 60,
+        "cube": 10,
+        "cylinderHoriz": 50,
+        "cylinderVert": 40,
+        "octahedron": 80,
+        "sphere": 20,
+        "torusHoriz": 31,
+        "torusVert": 30
+      }
+    },
+    "shapeAScale": {
+      "type": "float",
+      "default": 64,
+      "uniform": "shapeAScale",
+      "min": 1,
+      "max": 100
+    },
+    "shapeBScale": {
+      "type": "float",
+      "default": 27,
+      "uniform": "shapeBScale",
+      "min": 1,
+      "max": 100
+    },
+    "shapeAThickness": {
+      "type": "float",
+      "default": 5,
+      "uniform": "shapeAThickness",
+      "min": 1,
+      "max": 50
+    },
+    "shapeBThickness": {
+      "type": "float",
+      "default": 5,
+      "uniform": "shapeBThickness",
+      "min": 1,
+      "max": 50
+    },
+    "blendMode": {
+      "type": "int",
+      "default": 10,
+      "define": "BLEND_MODE",
+      "choices": {
+        "intersect": 40,
+        "union": 30,
+        "smoothIntersect": 20,
+        "smoothUnion": 10,
+        "aMinusB": 51,
+        "bMinusA": 50,
+        "smoothAMinusB": 26,
+        "smoothBMinusA": 25
+      }
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 1,
+      "uniform": "smoothness",
+      "min": 1,
+      "max": 100
+    },
+    "repetition": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "repetition"
+    },
+    "animation": {
+      "type": "int",
+      "default": 1,
+      "uniform": "animation",
+      "choices": {
+        "rotateScene": 0,
+        "rotateShape": 1
+      }
+    },
+    "spacing": {
+      "type": "int",
+      "default": 10,
+      "uniform": "spacing",
+      "min": 5,
+      "max": 20
+    },
+    "flythroughSpeed": {
+      "type": "float",
+      "default": 0,
+      "uniform": "flythroughSpeed",
+      "min": -10,
+      "max": 10
+    },
+    "spin": {
+      "type": "float",
+      "default": 0,
+      "uniform": "spin",
+      "min": -180,
+      "max": 180
+    },
+    "spinSpeed": {
+      "type": "float",
+      "default": 2,
+      "uniform": "spinSpeed",
+      "min": -10,
+      "max": 10
+    },
+    "flip": {
+      "type": "int",
+      "default": 0,
+      "uniform": "flip",
+      "min": -180,
+      "max": 180
+    },
+    "flipSpeed": {
+      "type": "float",
+      "default": 2,
+      "uniform": "flipSpeed",
+      "min": -10,
+      "max": 10
+    },
+    "cameraDist": {
+      "type": "float",
+      "default": 8,
+      "uniform": "cameraDist",
+      "min": 5,
+      "max": 20
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "bgColor"
+    },
+    "bgAlpha": {
+      "type": "float",
+      "default": 0,
+      "uniform": "bgAlpha",
+      "min": 0,
+      "max": 100
+    },
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "weight": {
+      "type": "float",
+      "default": 0,
+      "uniform": "weight",
+      "min": 0,
+      "max": 100
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 10,
+      "uniform": "colorMode",
+      "choices": {
+        "depth": 0,
+        "diffuse": 1,
+        "palette": 10
+      }
+    },
+    "palette": {
+      "type": "palette",
+      "default": 40,
+      "uniform": "palette",
+      "choices": {
+        "none": 0,
+        "seventiesShirt": 1,
+        "fiveG": 2,
+        "afterimage": 3,
+        "barstow": 4,
+        "bloob": 5,
+        "blueSkies": 6,
+        "brushedMetal": 7,
+        "burningSky": 8,
+        "california": 9,
+        "columbia": 10,
+        "cottonCandy": 11,
+        "darkSatin": 12,
+        "dealerHat": 13,
+        "dreamy": 14,
+        "eventHorizon": 15,
+        "ghostly": 16,
+        "grayscale": 17,
+        "hazySunset": 18,
+        "heatmap": 19,
+        "hypercolor": 20,
+        "jester": 21,
+        "justBlue": 22,
+        "justCyan": 23,
+        "justGreen": 24,
+        "justPurple": 25,
+        "justRed": 26,
+        "justYellow": 27,
+        "mars": 28,
+        "modesto": 29,
+        "moss": 30,
+        "neptune": 31,
+        "netOfGems": 32,
+        "organic": 33,
+        "papaya": 34,
+        "radioactive": 35,
+        "royal": 36,
+        "santaCruz": 37,
+        "sherbet": 38,
+        "sherbetDouble": 39,
+        "silvermane": 40,
+        "skykissed": 41,
+        "solaris": 42,
+        "spooky": 43,
+        "springtime": 44,
+        "sproingtime": 45,
+        "sulphur": 46,
+        "summoning": 47,
+        "superhero": 48,
+        "toxic": 49,
+        "tropicalia": 50,
+        "tungsten": 51,
+        "vaporwave": 52,
+        "vibrant": 53,
+        "vintage": 54,
+        "vintagePhoto": 55
+      }
+    },
+    "cyclePalette": {
+      "type": "int",
+      "default": 1,
+      "uniform": "cyclePalette",
+      "choices": {
+        "off": 0,
+        "forward": 1,
+        "backward": -1
+      }
+    },
+    "rotatePalette": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotatePalette",
+      "min": 0,
+      "max": 100
+    },
+    "repeatPalette": {
+      "type": "int",
+      "default": 1,
+      "uniform": "repeatPalette",
+      "min": 1,
+      "max": 10
+    },
+    "paletteMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "paletteMode"
+    },
+    "paletteOffset": {
+      "type": "vec3",
+      "default": [
+        0.83,
+        0.6,
+        0.63
+      ],
+      "uniform": "paletteOffset"
+    },
+    "paletteAmp": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "paletteAmp"
+    },
+    "paletteFreq": {
+      "type": "vec3",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "paletteFreq"
+    },
+    "palettePhase": {
+      "type": "vec3",
+      "default": [
+        0.3,
+        0.1,
+        0
+      ],
+      "uniform": "palettePhase"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "shapes3d",
+      "inputs": {
+        "inputTex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

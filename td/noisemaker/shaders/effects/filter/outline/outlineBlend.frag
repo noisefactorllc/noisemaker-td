@@ -1,0 +1,42 @@
+// NM_INPUTS: inputTex=0 edgesTexture=1
+// NM_OUTPUT: fragColor
+#define inputTex sTD2DInputs[0]
+#define edgesTexture sTD2DInputs[1]
+// Outline blend pass - darken base where edges are detected
+
+uniform vec2 tileOffset;
+uniform vec2 fullResolution;
+
+
+uniform float invert;
+
+out vec4 fragColor;
+
+void nm_main() {
+    vec2 globalCoord = gl_FragCoord.xy + tileOffset;
+    ivec2 dimensions = textureSize(inputTex, 0);
+    if (dimensions.x == 0 || dimensions.y == 0) {
+        fragColor = vec4(0.0);
+        return;
+    }
+
+    vec2 uv = gl_FragCoord.xy / vec2(dimensions);
+    
+    vec4 base = texture(inputTex, uv);
+    vec4 edges = texture(edgesTexture, uv);
+
+    // Edge strength from luminance
+    float strength = clamp(edges.r, 0.0, 1.0);
+    
+    // Outline color: black by default, white if inverted
+    vec3 outlineColor = invert > 0.5 ? vec3(1.0) : vec3(0.0);
+    
+    // Apply outline where edges are present
+    vec3 out_rgb = mix(base.rgb, outlineColor, strength);
+    
+    fragColor = vec4(out_rgb, base.a);
+}
+void main() {
+    nm_main();
+    fragColor = TDOutputSwizzle(fragColor);
+}

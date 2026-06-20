@@ -1,0 +1,30 @@
+{
+  "name": "Mesh Loader",
+  "namespace": "render",
+  "func": "meshLoader",
+  "starter": true,
+  "tags": [
+    "mesh",
+    "geometry",
+    "3D",
+    "OBJ"
+  ],
+  "description": "Load mesh data from OBJ files into GPU textures.",
+  "paramAliases": {},
+  "globals": {},
+  "passes": [
+    {
+      "name": "preview",
+      "program": "preview",
+      "inputs": {
+        "positionsTex": "global_mesh0_positions",
+        "normalsTex": "global_mesh0_normals"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search render\n\nmeshLoader()\n.meshRender()\n.write(o0)"
+}

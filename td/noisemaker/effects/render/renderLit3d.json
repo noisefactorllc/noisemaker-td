@@ -1,0 +1,184 @@
+{
+  "name": "RenderLit3D",
+  "namespace": "render",
+  "func": "renderLit3d",
+  "starter": false,
+  "tags": [
+    "3d"
+  ],
+  "description": "Universal 3D volume raymarcher with advanced lighting",
+  "paramAliases": {},
+  "globals": {
+    "volumeSize": {
+      "type": "int",
+      "default": 64,
+      "uniform": "volumeSize",
+      "choices": {
+        "v16": 16,
+        "v32": 32,
+        "v64": 64,
+        "v128": 128
+      }
+    },
+    "shape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "shape",
+      "choices": {
+        "cube": 0,
+        "sphere": 1
+      }
+    },
+    "threshold": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 1
+    },
+    "invert": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "invert"
+    },
+    "orbitSpeed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "orbitSpeed",
+      "min": -5,
+      "max": 5,
+      "zero": 0
+    },
+    "cameraPosition": {
+      "type": "vec3",
+      "default": [
+        0,
+        0.1425,
+        1
+      ],
+      "uniform": "cameraPosition",
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "max": [
+        1,
+        1,
+        1
+      ]
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "bgColor"
+    },
+    "bgAlpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "bgAlpha",
+      "min": 0,
+      "max": 1
+    },
+    "lightDirection": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        1
+      ],
+      "uniform": "lightDirection"
+    },
+    "diffuseColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "diffuseColor"
+    },
+    "diffuseIntensity": {
+      "type": "float",
+      "default": 0.7,
+      "uniform": "diffuseIntensity",
+      "min": 0,
+      "max": 2
+    },
+    "specularColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "specularColor"
+    },
+    "specularIntensity": {
+      "type": "float",
+      "default": 0.3,
+      "uniform": "specularIntensity",
+      "min": 0,
+      "max": 2
+    },
+    "shininess": {
+      "type": "float",
+      "default": 32,
+      "uniform": "shininess",
+      "min": 1,
+      "max": 256
+    },
+    "rimIntensity": {
+      "type": "float",
+      "default": 0.15,
+      "uniform": "rimIntensity",
+      "min": 0,
+      "max": 1
+    },
+    "rimPower": {
+      "type": "float",
+      "default": 3,
+      "uniform": "rimPower",
+      "min": 0.5,
+      "max": 8
+    },
+    "ambientColor": {
+      "type": "color",
+      "default": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "uniform": "ambientColor"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "renderLit3d",
+      "inputs": {
+        "volumeCache": "inputTex3d",
+        "analyticalGeo": "inputGeo"
+      },
+      "outputs": {
+        "color": "outputTex",
+        "geoOut": "screenGeoBuffer"
+      },
+      "drawBuffers": 2
+    }
+  ],
+  "textures": {
+    "screenGeoBuffer": {
+      "width": "resolution",
+      "height": "resolution",
+      "format": "rgba16f"
+    }
+  },
+  "defaultProgram": "search synth3d, filter3d, render\n\nnoise3d()\n.renderLit3d(specularIntensity: 2, shininess: 256)\n.write(o0)",
+  "outputTex3d": "inputTex3d",
+  "outputGeo": "screenGeoBuffer"
+}

@@ -1,0 +1,126 @@
+{
+  "name": "Mandelbrot",
+  "namespace": "synth",
+  "func": "mandelbrot",
+  "starter": true,
+  "tags": [
+    "fractal"
+  ],
+  "description": "Mandelbrot explorer with deep zoom",
+  "paramAliases": {
+    "poiMode": "poi"
+  },
+  "globals": {
+    "poi": {
+      "type": "int",
+      "default": 0,
+      "uniform": "poi",
+      "choices": {
+        "manual": 0,
+        "birdOfParadise": 6,
+        "doubleSpiral": 8,
+        "elephantValley": 2,
+        "feigenbaum": 5,
+        "miniBrot": 4,
+        "scepterValley": 3,
+        "seahorseValley": 1,
+        "spiralGalaxy": 7
+      }
+    },
+    "outputMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "outputMode",
+      "choices": {
+        "distance": 1,
+        "normalMap": 4,
+        "orbitTrap": 3,
+        "smoothIteration": 0,
+        "stripeAverage": 2
+      }
+    },
+    "iterations": {
+      "type": "int",
+      "default": 500,
+      "uniform": "iterations",
+      "min": 50,
+      "max": 2000
+    },
+    "centerX": {
+      "type": "float",
+      "default": -0.5,
+      "uniform": "centerHiX",
+      "min": -3,
+      "max": 3
+    },
+    "centerY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "centerHiY",
+      "min": -3,
+      "max": 3
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "zoomSpeed": {
+      "type": "float",
+      "default": 0,
+      "uniform": "zoomSpeed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "zoomDepth": {
+      "type": "float",
+      "default": 0,
+      "uniform": "zoomDepth",
+      "min": 0,
+      "max": 14
+    },
+    "stripeFreq": {
+      "type": "float",
+      "default": 5,
+      "uniform": "stripeFreq",
+      "min": 0.5,
+      "max": 20
+    },
+    "trapShape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "trapShape",
+      "choices": {
+        "circle": 2,
+        "cross": 1,
+        "point": 0
+      }
+    },
+    "lightAngle": {
+      "type": "float",
+      "default": 45,
+      "uniform": "lightAngle",
+      "min": 0,
+      "max": 360
+    },
+    "invert": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "invert"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "mandelbrot",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

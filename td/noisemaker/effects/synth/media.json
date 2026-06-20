@@ -1,0 +1,128 @@
+{
+  "name": "Media",
+  "namespace": "synth",
+  "func": "media",
+  "starter": true,
+  "tags": [
+    "image",
+    "video"
+  ],
+  "description": "Video/camera/image input",
+  "paramAliases": {
+    "backgroundColor": "bgColor",
+    "backgroundOpacity": "bgAlpha"
+  },
+  "globals": {
+    "position": {
+      "type": "int",
+      "default": 4,
+      "uniform": "position",
+      "choices": {
+        "topLeft": 0,
+        "topCenter": 1,
+        "topRight": 2,
+        "midLeft": 3,
+        "midCenter": 4,
+        "midRight": 5,
+        "bottomLeft": 6,
+        "bottomCenter": 7,
+        "bottomRight": 8
+      }
+    },
+    "tiling": {
+      "type": "int",
+      "default": 0,
+      "uniform": "tiling",
+      "choices": {
+        "none": 0,
+        "horizAndVert": 1,
+        "horizOnly": 2,
+        "vertOnly": 3
+      }
+    },
+    "flip": {
+      "type": "int",
+      "default": 0,
+      "uniform": "flip",
+      "choices": {
+        "none": 0,
+        "all": 1,
+        "horizontal": 2,
+        "vertical": 3,
+        "mirrorLtoR": 11,
+        "mirrorRtoL": 12,
+        "mirrorUtoD": 13,
+        "mirrorDtoU": 14,
+        "mirrorLtoRUtoD": 15,
+        "mirrorLtoRDtoU": 16,
+        "mirrorRtoLUtoD": 17,
+        "mirrorRtoLDtoU": 18
+      }
+    },
+    "scaleAmt": {
+      "type": "float",
+      "default": 100,
+      "uniform": "scaleAmt",
+      "min": 25,
+      "max": 400
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "offsetX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetX",
+      "min": -100,
+      "max": 100
+    },
+    "offsetY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetY",
+      "min": -100,
+      "max": 100
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "bgColor"
+    },
+    "bgAlpha": {
+      "type": "float",
+      "default": 0,
+      "uniform": "bgAlpha",
+      "min": 0,
+      "max": 1
+    },
+    "imageSize": {
+      "type": "vec2",
+      "default": [
+        1024,
+        1024
+      ],
+      "uniform": "imageSize"
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "mediaInput",
+      "inputs": {
+        "imageTex": "imageTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

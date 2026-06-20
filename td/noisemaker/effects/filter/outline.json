@@ -1,0 +1,81 @@
+{
+  "name": "Outline",
+  "namespace": "filter",
+  "func": "outline",
+  "starter": false,
+  "tags": [
+    "edges"
+  ],
+  "description": "Outline/edge stroke",
+  "paramAliases": {},
+  "globals": {
+    "shape": {
+      "type": "int",
+      "default": 1,
+      "uniform": "sobelMetric",
+      "choices": {
+        "circle": 1,
+        "diamond": 2,
+        "square": 3,
+        "octagon": 4
+      }
+    },
+    "thickness": {
+      "type": "float",
+      "default": 1,
+      "uniform": "thickness",
+      "min": 1,
+      "max": 10
+    },
+    "invert": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "invert"
+    }
+  },
+  "passes": [
+    {
+      "name": "valueMap",
+      "program": "outlineValueMap",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "color": "outlineValueMap"
+      }
+    },
+    {
+      "name": "sobel",
+      "program": "outlineSobel",
+      "inputs": {
+        "valueTexture": "outlineValueMap"
+      },
+      "outputs": {
+        "color": "outlineEdges"
+      }
+    },
+    {
+      "name": "blend",
+      "program": "outlineBlend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "edgesTexture": "outlineEdges"
+      },
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "outlineValueMap": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    },
+    "outlineEdges": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  }
+}

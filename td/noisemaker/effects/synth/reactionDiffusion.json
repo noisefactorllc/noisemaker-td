@@ -1,0 +1,207 @@
+{
+  "name": "Reaction-Diffusion",
+  "namespace": "synth",
+  "func": "reactionDiffusion",
+  "starter": true,
+  "tags": [
+    "sim"
+  ],
+  "description": "Gray-Scott reaction-diffusion",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "zoom": {
+      "type": "int",
+      "default": 8,
+      "uniform": "zoom",
+      "choices": {
+        "x1": 1,
+        "x2": 2,
+        "x4": 4,
+        "x8": 8,
+        "x16": 16,
+        "x32": 32,
+        "x64": 64
+      }
+    },
+    "smoothing": {
+      "type": "int",
+      "default": 1,
+      "uniform": "smoothing",
+      "choices": {
+        "constant": 0,
+        "linear": 1,
+        "hermite": 2,
+        "catmullRom3x3": 3,
+        "catmullRom4x4": 4,
+        "bSpline3x3": 5,
+        "bSpline4x4": 6
+      }
+    },
+    "speed": {
+      "type": "float",
+      "default": 100,
+      "uniform": "speed",
+      "min": 10,
+      "max": 145
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "sourceF": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sourceF",
+      "choices": {
+        "slider": 0,
+        "sliderInput": 6,
+        "brightness": 1,
+        "darkness": 2,
+        "red": 3,
+        "green": 4,
+        "blue": 5
+      }
+    },
+    "feed": {
+      "type": "float",
+      "default": 70,
+      "uniform": "feed",
+      "min": 10,
+      "max": 110
+    },
+    "sourceK": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sourceK",
+      "choices": {
+        "slider": 0,
+        "sliderInput": 6,
+        "brightness": 1,
+        "darkness": 2,
+        "red": 3,
+        "green": 4,
+        "blue": 5
+      }
+    },
+    "kill": {
+      "type": "float",
+      "default": 67,
+      "uniform": "kill",
+      "min": 45,
+      "max": 70
+    },
+    "sourceR1": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sourceR1",
+      "choices": {
+        "slider": 0,
+        "sliderInput": 6,
+        "brightness": 1,
+        "darkness": 2,
+        "red": 3,
+        "green": 4,
+        "blue": 5
+      }
+    },
+    "rate1": {
+      "type": "float",
+      "default": 92,
+      "uniform": "rate1",
+      "min": 50,
+      "max": 120
+    },
+    "sourceR2": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sourceR2",
+      "choices": {
+        "slider": 0,
+        "sliderInput": 6,
+        "brightness": 1,
+        "darkness": 2,
+        "red": 3,
+        "green": 4,
+        "blue": 5
+      }
+    },
+    "rate2": {
+      "type": "float",
+      "default": 22,
+      "uniform": "rate2",
+      "min": 20,
+      "max": 50
+    },
+    "iterations": {
+      "type": "int",
+      "default": 8,
+      "uniform": "iterations",
+      "min": 1,
+      "max": 32
+    },
+    "weight": {
+      "type": "float",
+      "default": 0,
+      "uniform": "weight",
+      "min": 0,
+      "max": 100
+    },
+    "inputIntensity": {
+      "type": "float",
+      "default": 0,
+      "uniform": "inputIntensity",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "simulate",
+      "program": "rdFb",
+      "inputs": {
+        "bufTex": "global_rd_state",
+        "inputTex": "tex"
+      },
+      "outputs": {
+        "fragColor": "global_rd_state"
+      },
+      "repeat": "iterations"
+    },
+    {
+      "name": "render",
+      "program": "rd",
+      "inputs": {
+        "fbTex": "global_rd_state",
+        "inputTex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_rd_state": {
+      "width": {
+        "screenDivide": "zoom",
+        "default": 8
+      },
+      "height": {
+        "screenDivide": "zoom",
+        "default": 8
+      },
+      "format": "rgba16f"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "Warp",
+  "namespace": "filter",
+  "func": "warp",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Perlin noise-based warp distortion",
+  "paramAliases": {},
+  "globals": {
+    "strength": {
+      "type": "float",
+      "default": 75,
+      "uniform": "strength",
+      "min": 0,
+      "max": 100,
+      "zero": 0
+    },
+    "scale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "scale",
+      "min": 0,
+      "max": 5
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "warp",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

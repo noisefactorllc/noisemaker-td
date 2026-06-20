@@ -1,0 +1,57 @@
+// NM_INPUTS: inputTex=0
+// NM_OUTPUT: fragColor
+#define inputTex sTD2DInputs[0]
+/*
+ * Radial vignette with brightness blend
+ */
+
+
+
+uniform vec2 tileOffset;
+uniform vec2 fullResolution;
+uniform float vignetteBrightness;
+uniform float alpha;
+
+out vec4 fragColor;
+
+float computeVignetteMask(vec2 uv, vec2 dims) {
+    if (dims.x <= 0.0 || dims.y <= 0.0) {
+        return 0.0;
+    }
+    
+    vec2 delta = abs(uv - vec2(0.5));
+    float aspect = dims.x / max(dims.y, 1.0);
+    vec2 scaled = vec2(delta.x * aspect, delta.y);
+    float maxRadius = length(vec2(aspect * 0.5, 0.5));
+    
+    if (maxRadius <= 0.0) {
+        return 0.0;
+    }
+    
+    float normalizedDist = clamp(length(scaled) / maxRadius, 0.0, 1.0);
+    return normalizedDist * normalizedDist;
+}
+
+void nm_main() {
+    vec2 globalCoord = gl_FragCoord.xy + tileOffset;
+    ivec2 texSize = textureSize(inputTex, 0);
+    vec2 tileDims = vec2(texSize);
+    vec2 dims = fullResolution.x > 0.0 ? fullResolution : tileDims;
+    vec2 uv = gl_FragCoord.xy / tileDims;
+    vec2 globalUV = (gl_FragCoord.xy + tileOffset) / dims;
+
+    vec4 texel = texture(inputTex, uv);
+
+    float mask = computeVignetteMask(globalUV, dims);
+    
+    // Apply brightness to RGB only, preserve alpha
+    vec3 brightnessRgb = vec3(vignetteBrightness);
+    vec3 edgeBlend = mix(texel.rgb, brightnessRgb, mask);
+    vec3 finalRgb = mix(texel.rgb, edgeBlend, alpha);
+    
+    fragColor = vec4(finalRgb, texel.a);
+}
+void main() {
+    nm_main();
+    fragColor = TDOutputSwizzle(fragColor);
+}

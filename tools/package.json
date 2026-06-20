@@ -1,0 +1,11 @@
+{
+  "name": "noisemaker-hlsl-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline tooling for the noisemaker-hlsl Unity port. These scripts import the SIBLING reference engine (../../shaders/src/index.js) — the unchanged JS Noisemaker compiler — to (a) export GOLDEN render-graph JSON from DSL (export-graph.mjs) and (b) regenerate all effect-definition JSON for the Unity package (convert-definitions.mjs). No build step is required; the reference is plain browser-compatible ESM run under Node only for tooling. Override the reference root with NM_REFERENCE_ROOT if this folder is relocated.",
+  "scripts": {
+    "export-graph": "node export-graph.mjs",
+    "convert-definitions": "node convert-definitions.mjs"
+  }
+}

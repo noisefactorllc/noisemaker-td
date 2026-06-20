@@ -1,0 +1,97 @@
+{
+  "name": "Refract",
+  "namespace": "classicNoisedeck",
+  "func": "refract",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Refraction distortion",
+  "paramAliases": {
+    "refractDir": "direction",
+    "mixAmt": "mix"
+  },
+  "globals": {
+    "blendMode": {
+      "type": "int",
+      "default": 10,
+      "uniform": "blendMode",
+      "choices": {
+        "add": 0,
+        "colorBurn": 2,
+        "colorDodge": 3,
+        "darken": 4,
+        "difference": 5,
+        "exclusion": 6,
+        "glow": 7,
+        "hardLight": 8,
+        "lighten": 9,
+        "mix": 10,
+        "multiply": 11,
+        "negation": 12,
+        "overlay": 13,
+        "phoenix": 14,
+        "reflect": 15,
+        "screen": 16,
+        "softLight": 17,
+        "subtract": 18
+      }
+    },
+    "mix": {
+      "type": "float",
+      "default": 50,
+      "uniform": "mixAmt",
+      "min": 0,
+      "max": 100
+    },
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "refract": 0,
+        "reflect": 1
+      }
+    },
+    "amount": {
+      "type": "float",
+      "default": 50,
+      "uniform": "amount",
+      "min": 0,
+      "max": 100
+    },
+    "direction": {
+      "type": "float",
+      "default": 0,
+      "uniform": "direction",
+      "min": 0,
+      "max": 360
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "clamp": 2,
+        "mirror": 0,
+        "repeat": 1
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "refract",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "mixAmt": "mix"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

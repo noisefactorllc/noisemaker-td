@@ -1,0 +1,72 @@
+{
+  "name": "Normalize",
+  "namespace": "filter",
+  "func": "normalize",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Value normalization",
+  "paramAliases": {},
+  "globals": {},
+  "passes": [
+    {
+      "name": "reduce",
+      "program": "reduce",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "reduce1"
+      }
+    },
+    {
+      "name": "reduceMinmax",
+      "program": "reduceMinmax",
+      "inputs": {
+        "inputTex": "reduce1"
+      },
+      "outputs": {
+        "fragColor": "reduce2"
+      }
+    },
+    {
+      "name": "statsFinal",
+      "program": "statsFinal",
+      "inputs": {
+        "inputTex": "reduce2"
+      },
+      "outputs": {
+        "fragColor": "stats"
+      }
+    },
+    {
+      "name": "apply",
+      "program": "apply",
+      "inputs": {
+        "inputTex": "inputTex",
+        "statsTex": "stats"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "reduce1": {
+      "width": "6.25%",
+      "height": "6.25%",
+      "format": "rgba16f"
+    },
+    "reduce2": {
+      "width": "0.4%",
+      "height": "0.4%",
+      "format": "rgba16f"
+    },
+    "stats": {
+      "width": 1,
+      "height": 1,
+      "format": "rgba16f"
+    }
+  }
+}

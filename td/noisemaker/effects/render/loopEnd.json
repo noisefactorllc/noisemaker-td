@@ -1,0 +1,36 @@
+{
+  "name": "LoopEnd",
+  "namespace": "render",
+  "func": "loopEnd",
+  "starter": false,
+  "tags": [
+    "util",
+    "sim"
+  ],
+  "description": "End accumulator loop, write back to feedback buffer",
+  "paramAliases": {},
+  "globals": {},
+  "passes": [
+    {
+      "name": "feedback",
+      "program": "copy",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "global_accum"
+      }
+    },
+    {
+      "name": "output",
+      "program": "copy",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

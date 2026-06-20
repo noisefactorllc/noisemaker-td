@@ -1,0 +1,157 @@
+{
+  "name": "Cellular Automata 3D",
+  "namespace": "synth3d",
+  "func": "cellularAutomata3d",
+  "starter": true,
+  "tags": [
+    "3d",
+    "sim"
+  ],
+  "description": "3D cellular automata simulation",
+  "paramAliases": {},
+  "globals": {
+    "volumeSize": {
+      "type": "int",
+      "default": 32,
+      "uniform": "volumeSize",
+      "choices": {
+        "x16": 16,
+        "x32": 32,
+        "x64": 64,
+        "x128": 128
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "ruleIndex": {
+      "type": "int",
+      "default": 0,
+      "uniform": "ruleIndex",
+      "choices": {
+        "rule445M": 0,
+        "rule678": 1,
+        "amoeba": 2,
+        "builder1": 3,
+        "builder2": 4,
+        "clouds": 5,
+        "crystalGrowth": 6,
+        "diamoeba": 7,
+        "pyroclastic": 8,
+        "slowDecay": 9,
+        "spikeyGrowth": 10
+      }
+    },
+    "neighborMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "neighborMode",
+      "choices": {
+        "moore": 0,
+        "vonNeumann": 1
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 10,
+      "zero": 0
+    },
+    "density": {
+      "type": "float",
+      "default": 50,
+      "uniform": "density",
+      "min": 1,
+      "max": 100
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "age": 1
+      }
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    },
+    "source": {
+      "type": "volume",
+      "default": "vol0"
+    },
+    "geoSource": {
+      "type": "geometry",
+      "default": "geo0"
+    },
+    "weight": {
+      "type": "float",
+      "default": 0,
+      "uniform": "weight",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "simulate",
+      "program": "simulate",
+      "inputs": {
+        "stateTex": "global_ca_state",
+        "seedTex": "source"
+      },
+      "outputs": {
+        "color": "global_ca_state"
+      }
+    }
+  ],
+  "textures": {
+    "volumeCache": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "geoBuffer": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "global_ca_state": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    }
+  },
+  "defaultProgram": "search synth3d, filter3d, render\n\ncellularAutomata3d(ruleIndex: diamoeba)\n.render3d()\n.write(o0)",
+  "outputTex3d": "global_ca_state",
+  "outputGeo": "geoBuffer"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Lens Warp",
+  "namespace": "filter",
+  "func": "lensWarp",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Noise-driven radial lens distortion",
+  "paramAliases": {},
+  "globals": {
+    "displacement": {
+      "type": "float",
+      "default": 0.0625,
+      "uniform": "displacement",
+      "min": 0,
+      "max": 0.25,
+      "zero": 0
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "lensWarp",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "displacement": "displacement"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

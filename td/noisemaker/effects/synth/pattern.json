@@ -1,0 +1,117 @@
+{
+  "name": "Pattern",
+  "namespace": "synth",
+  "func": "pattern",
+  "starter": true,
+  "tags": [
+    "geometric",
+    "pattern"
+  ],
+  "description": "Geometric pattern generator",
+  "paramAliases": {
+    "patternType": "type"
+  },
+  "globals": {
+    "type": {
+      "type": "int",
+      "default": 7,
+      "uniform": "patternType",
+      "choices": {
+        "checkerboard": 0,
+        "concentricRings": 1,
+        "dots": 2,
+        "grid": 3,
+        "hearts": 9,
+        "hexagons": 4,
+        "radialLines": 5,
+        "spiral": 6,
+        "stripes": 7,
+        "triangularGrid": 8,
+        "waves": 10,
+        "zigzag": 11
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 15,
+      "uniform": "scale",
+      "min": 1,
+      "max": 20
+    },
+    "thickness": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "thickness",
+      "min": 0,
+      "max": 1
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 0.02,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 1
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "skew": {
+      "type": "float",
+      "default": 0,
+      "uniform": "skew",
+      "min": -2,
+      "max": 2
+    },
+    "animation": {
+      "type": "int",
+      "default": 0,
+      "uniform": "animation",
+      "choices": {
+        "none": 0,
+        "pan": 1,
+        "rotate": 2
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": -5,
+      "max": 5,
+      "zero": 0
+    },
+    "fgColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "fgColor"
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "bgColor"
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "pattern",
+      "inputs": {},
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

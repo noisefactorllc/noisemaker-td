@@ -1,0 +1,47 @@
+{
+  "name": "Sine",
+  "namespace": "filter",
+  "func": "sine",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Sine wave color transform",
+  "paramAliases": {},
+  "globals": {
+    "amount": {
+      "type": "float",
+      "default": 7,
+      "uniform": "amount",
+      "min": 0,
+      "max": 20,
+      "zero": 0
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "rgb": 1
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "sine",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "amount": "amount",
+        "colorMode": "colorMode"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

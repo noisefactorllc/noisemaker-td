@@ -1,0 +1,87 @@
+{
+  "name": "PatternMix",
+  "namespace": "mixer",
+  "func": "patternMix",
+  "starter": false,
+  "tags": [
+    "blend",
+    "pattern"
+  ],
+  "description": "Mix inputs using geometric patterns",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "invert": {
+      "type": "int",
+      "default": 0,
+      "uniform": "invert",
+      "choices": {
+        "sourceA": 1,
+        "sourceB": 0
+      }
+    },
+    "type": {
+      "type": "int",
+      "default": 7,
+      "uniform": "patternType",
+      "choices": {
+        "checkerboard": 0,
+        "concentricRings": 1,
+        "dots": 2,
+        "grid": 3,
+        "hexagons": 4,
+        "radialLines": 5,
+        "spiral": 6,
+        "stripes": 7,
+        "triangularGrid": 8
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 18,
+      "uniform": "scale",
+      "min": 1,
+      "max": 20
+    },
+    "thickness": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "thickness",
+      "min": 0,
+      "max": 1
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 0.01,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 0.25,
+      "zero": 0
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "patternMix",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search mixer, synth\n\nnoise(ridges: true, colorMode: mono)\n.write(o0)\n\nnoise(ridges: true)\n.patternMix(tex: read(o0))\n.write(o1)"
+}

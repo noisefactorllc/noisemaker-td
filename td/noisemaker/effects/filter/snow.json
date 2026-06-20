@@ -1,0 +1,51 @@
+{
+  "name": "Snow",
+  "namespace": "filter",
+  "func": "snow",
+  "starter": false,
+  "tags": [
+    "noise"
+  ],
+  "description": "TV snow/static noise",
+  "paramAliases": {},
+  "globals": {
+    "alpha": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1,
+      "zero": 0
+    },
+    "pause": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "pause"
+    },
+    "density": {
+      "type": "float",
+      "default": 75,
+      "uniform": "density",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "snow",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "alpha": "alpha",
+        "pause": "pause",
+        "density": "density"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

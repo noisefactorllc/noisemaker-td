@@ -1,0 +1,134 @@
+{
+  "name": "Noise",
+  "namespace": "synth",
+  "func": "noise",
+  "starter": true,
+  "tags": [
+    "noise"
+  ],
+  "description": "Value noise with multiple interpolation types",
+  "paramAliases": {
+    "noiseType": "type",
+    "loopAmp": "speed",
+    "xScale": "scaleX",
+    "yScale": "scaleY"
+  },
+  "globals": {
+    "type": {
+      "type": "int",
+      "default": 10,
+      "define": "NOISE_TYPE",
+      "choices": {
+        "constant": 0,
+        "linear": 1,
+        "hermite": 2,
+        "catmullRom3x3": 3,
+        "catmullRom4x4": 4,
+        "bSpline3x3": 5,
+        "bSpline4x4": 6,
+        "simplex": 10,
+        "sine": 11
+      }
+    },
+    "octaves": {
+      "type": "int",
+      "default": 2,
+      "uniform": "octaves",
+      "min": 1,
+      "max": 8
+    },
+    "scaleX": {
+      "type": "float",
+      "default": 75,
+      "uniform": "scaleX",
+      "min": 1,
+      "max": 100
+    },
+    "scaleY": {
+      "type": "float",
+      "default": 75,
+      "uniform": "scaleY",
+      "min": 1,
+      "max": 100
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "wrap": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "wrap"
+    },
+    "ridges": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "ridges"
+    },
+    "loopOffset": {
+      "type": "int",
+      "default": 300,
+      "define": "LOOP_OFFSET",
+      "choices": {
+        "Shapes:": null,
+        "circle": 10,
+        "triangle": 20,
+        "diamond": 30,
+        "square": 40,
+        "pentagon": 50,
+        "hexagon": 60,
+        "heptagon": 70,
+        "octagon": 80,
+        "nonagon": 90,
+        "decagon": 100,
+        "hendecagon": 110,
+        "dodecagon": 120,
+        "Directional:": null,
+        "horizontalScan": 200,
+        "verticalScan": 210,
+        "Misc:": null,
+        "noise": 300,
+        "rings": 400,
+        "sine": 410
+      }
+    },
+    "loopScale": {
+      "type": "float",
+      "default": 75,
+      "uniform": "loopScale",
+      "min": 1,
+      "max": 100
+    },
+    "speed": {
+      "type": "int",
+      "default": 25,
+      "uniform": "speed",
+      "min": -100,
+      "max": 100,
+      "zero": 0
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "rgb": 1
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "noise",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

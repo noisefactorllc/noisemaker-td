@@ -1,0 +1,157 @@
+{
+  "name": "Reaction-Diffusion 3D",
+  "namespace": "synth3d",
+  "func": "reactionDiffusion3d",
+  "starter": true,
+  "tags": [
+    "3d",
+    "sim"
+  ],
+  "description": "3D reaction-diffusion simulation",
+  "paramAliases": {},
+  "globals": {
+    "volumeSize": {
+      "type": "int",
+      "default": 32,
+      "uniform": "volumeSize",
+      "choices": {
+        "x16": 16,
+        "x32": 32,
+        "x64": 64,
+        "x128": 128
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 0,
+      "max": 100
+    },
+    "iterations": {
+      "type": "int",
+      "default": 8,
+      "uniform": "iterations",
+      "min": 1,
+      "max": 32
+    },
+    "feed": {
+      "type": "float",
+      "default": 110,
+      "uniform": "feed",
+      "min": 10,
+      "max": 110
+    },
+    "kill": {
+      "type": "float",
+      "default": 62,
+      "uniform": "kill",
+      "min": 45,
+      "max": 70
+    },
+    "rate1": {
+      "type": "float",
+      "default": 120,
+      "uniform": "rate1",
+      "min": 50,
+      "max": 120
+    },
+    "rate2": {
+      "type": "float",
+      "default": 30,
+      "uniform": "rate2",
+      "min": 20,
+      "max": 80
+    },
+    "speed": {
+      "type": "int",
+      "default": 100,
+      "uniform": "speed",
+      "min": 10,
+      "max": 200
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "gradient": 1
+      }
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    },
+    "source": {
+      "type": "volume",
+      "default": "vol0"
+    },
+    "geoSource": {
+      "type": "geometry",
+      "default": "geo0"
+    },
+    "weight": {
+      "type": "float",
+      "default": 0,
+      "uniform": "weight",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "simulate",
+      "program": "simulate",
+      "inputs": {
+        "stateTex": "global_rd_state",
+        "seedTex": "source"
+      },
+      "outputs": {
+        "color": "global_rd_state"
+      },
+      "repeat": "iterations"
+    }
+  ],
+  "textures": {
+    "volumeCache": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "geoBuffer": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "global_rd_state": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    }
+  },
+  "outputTex3d": "global_rd_state",
+  "outputGeo": "geoBuffer"
+}

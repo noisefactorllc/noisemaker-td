@@ -1,0 +1,128 @@
+{
+  "name": "Points Emit",
+  "namespace": "render",
+  "func": "pointsEmit",
+  "starter": false,
+  "tags": [
+    "agents"
+  ],
+  "description": "Initialize and maintain agent state for particle systems",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "uniform": "stateSize",
+      "min": 64,
+      "max": 2048,
+      "choices": {
+        "x64": 64,
+        "x128": 128,
+        "x256": 256,
+        "x512": 512,
+        "x1024": 1024,
+        "x2048": 2048
+      }
+    },
+    "layout": {
+      "type": "int",
+      "default": 0,
+      "uniform": "layout",
+      "choices": {
+        "random": 0,
+        "grid": 1,
+        "center": 2,
+        "ring": 3,
+        "clusters": 4,
+        "spiral": 5
+      }
+    },
+    "seed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "seed",
+      "min": 0,
+      "max": 100
+    },
+    "attrition": {
+      "type": "float",
+      "default": 0,
+      "uniform": "attrition",
+      "min": 0,
+      "max": 10
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    }
+  },
+  "passes": [
+    {
+      "name": "init",
+      "program": "init",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "layoutMode": "layout",
+        "attrition": "attrition",
+        "resetState": "resetState"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_xyz": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba32f"
+    },
+    "global_vel": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba32f"
+    },
+    "global_rgba": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba8"
+    }
+  }
+}

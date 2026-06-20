@@ -1,0 +1,101 @@
+{
+  "name": "Text",
+  "namespace": "filter",
+  "func": "text",
+  "starter": false,
+  "tags": [
+    "text"
+  ],
+  "description": "Overlay text onto the image",
+  "paramAliases": {
+    "bgOpacity": "matteOpacity",
+    "bgAlpha": "matteOpacity",
+    "bgColor": "matteColor"
+  },
+  "globals": {
+    "text": {
+      "type": "string",
+      "default": "Hello World"
+    },
+    "font": {
+      "type": "string",
+      "default": "Nunito",
+      "choices": {
+        "nunito": "Nunito",
+        "sansSerif": "sans-serif",
+        "serif": "serif",
+        "monospace": "monospace",
+        "cursive": "cursive",
+        "fantasy": "fantasy"
+      }
+    },
+    "size": {
+      "type": "float",
+      "default": 0.1,
+      "min": 0.01,
+      "max": 1
+    },
+    "posX": {
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+    },
+    "posY": {
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "min": -180,
+      "max": 180
+    },
+    "color": {
+      "type": "color",
+      "default": "#ffffff"
+    },
+    "matteColor": {
+      "type": "color",
+      "default": "#000000",
+      "uniform": "matteColor"
+    },
+    "matteOpacity": {
+      "type": "float",
+      "default": 0,
+      "uniform": "matteOpacity",
+      "min": 0,
+      "max": 1
+    },
+    "justify": {
+      "type": "string",
+      "default": "center",
+      "choices": {
+        "left": "left",
+        "center": "center",
+        "right": "right"
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "overlay",
+      "program": "text",
+      "inputs": {
+        "inputTex": "inputTex",
+        "textTex": "textTex"
+      },
+      "uniforms": {
+        "matteColor": "matteColor",
+        "matteOpacity": "matteOpacity"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\nperlin(scale: 100)\n  .text()\n  .write(o0)"
+}

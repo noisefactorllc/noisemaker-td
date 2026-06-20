@@ -1,0 +1,62 @@
+{
+  "name": "Focus Blur",
+  "namespace": "mixer",
+  "func": "focusBlur",
+  "starter": false,
+  "tags": [
+    "blend",
+    "blur"
+  ],
+  "description": "Focus blur using luminance depth map",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "depthSource": {
+      "type": "int",
+      "default": 1,
+      "uniform": "depthSource",
+      "choices": {
+        "sourceA": 0,
+        "sourceB": 1
+      }
+    },
+    "focalDistance": {
+      "type": "float",
+      "default": 50,
+      "uniform": "focalDistance",
+      "min": 1,
+      "max": 100
+    },
+    "aperture": {
+      "type": "float",
+      "default": 4,
+      "uniform": "aperture",
+      "min": 1,
+      "max": 10
+    },
+    "sampleBias": {
+      "type": "float",
+      "default": 10,
+      "uniform": "sampleBias",
+      "min": 2,
+      "max": 20
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "focusBlur",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

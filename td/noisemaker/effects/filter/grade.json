@@ -1,0 +1,409 @@
+{
+  "name": "Grade",
+  "namespace": "filter",
+  "func": "grade",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Professional multi-stage color grading pipeline",
+  "paramAliases": {
+    "vignetteHighlightProtect": "vigHiProtect"
+  },
+  "globals": {
+    "preset": {
+      "type": "int",
+      "default": 0,
+      "uniform": "preset",
+      "choices": {
+        "none": 0,
+        "bleachBypass": 4,
+        "cinematic": 6,
+        "coolShadows": 3,
+        "crossProcess": 5,
+        "dayForNight": 7,
+        "hardLight": 20,
+        "infrared": 11,
+        "matrix": 14,
+        "monochrome": 17,
+        "neon": 13,
+        "noir": 9,
+        "posterize": 21,
+        "psychedelic": 18,
+        "sepia": 10,
+        "solarize": 22,
+        "sunset": 16,
+        "tealOrange": 1,
+        "technicolor": 12,
+        "underwater": 15,
+        "vintage": 8,
+        "warmFilm": 2
+      }
+    },
+    "alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1
+    },
+    "temperature": {
+      "type": "float",
+      "default": 0,
+      "uniform": "temperature",
+      "min": -1,
+      "max": 1
+    },
+    "tint": {
+      "type": "float",
+      "default": 0,
+      "uniform": "tint",
+      "min": -1,
+      "max": 1
+    },
+    "exposure": {
+      "type": "float",
+      "default": 0,
+      "uniform": "exposure",
+      "min": -4,
+      "max": 4
+    },
+    "contrast": {
+      "type": "float",
+      "default": 0,
+      "uniform": "contrast",
+      "min": -1,
+      "max": 1
+    },
+    "highlights": {
+      "type": "float",
+      "default": 0,
+      "uniform": "highlights",
+      "min": -1,
+      "max": 1
+    },
+    "shadows": {
+      "type": "float",
+      "default": 0,
+      "uniform": "shadows",
+      "min": -1,
+      "max": 1
+    },
+    "whites": {
+      "type": "float",
+      "default": 0,
+      "uniform": "whites",
+      "min": -1,
+      "max": 1
+    },
+    "blacks": {
+      "type": "float",
+      "default": 0,
+      "uniform": "blacks",
+      "min": -1,
+      "max": 1
+    },
+    "saturation": {
+      "type": "float",
+      "default": 1,
+      "uniform": "saturation",
+      "min": 0,
+      "max": 2
+    },
+    "vibrance": {
+      "type": "float",
+      "default": 0,
+      "uniform": "vibrance",
+      "min": -1,
+      "max": 1
+    },
+    "fadedFilm": {
+      "type": "float",
+      "default": 0,
+      "uniform": "fadedFilm",
+      "min": 0,
+      "max": 1
+    },
+    "shadowTint": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "shadowTint"
+    },
+    "highlightTint": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "highlightTint"
+    },
+    "splitToneBalance": {
+      "type": "float",
+      "default": 0,
+      "uniform": "splitToneBalance",
+      "min": -1,
+      "max": 1
+    },
+    "curveShadows": {
+      "type": "float",
+      "default": 0,
+      "uniform": "curveShadows",
+      "min": -1,
+      "max": 1
+    },
+    "curveMidtones": {
+      "type": "float",
+      "default": 0,
+      "uniform": "curveMidtones",
+      "min": -1,
+      "max": 1
+    },
+    "curveHighlights": {
+      "type": "float",
+      "default": 0,
+      "uniform": "curveHighlights",
+      "min": -1,
+      "max": 1
+    },
+    "wheelShadows": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "wheelShadows"
+    },
+    "wheelMidtones": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "wheelMidtones"
+    },
+    "wheelHighlights": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "uniform": "wheelHighlights"
+    },
+    "wheelBalance": {
+      "type": "float",
+      "default": 0,
+      "uniform": "wheelBalance",
+      "min": -1,
+      "max": 1
+    },
+    "hslEnable": {
+      "type": "int",
+      "default": 0,
+      "uniform": "hslEnable",
+      "min": 0,
+      "max": 1
+    },
+    "hslHueCenter": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hslHueCenter",
+      "min": 0,
+      "max": 1
+    },
+    "hslHueRange": {
+      "type": "float",
+      "default": 0.1,
+      "uniform": "hslHueRange",
+      "min": 0,
+      "max": 0.5
+    },
+    "hslSatMin": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hslSatMin",
+      "min": 0,
+      "max": 1
+    },
+    "hslSatMax": {
+      "type": "float",
+      "default": 1,
+      "uniform": "hslSatMax",
+      "min": 0,
+      "max": 1
+    },
+    "hslLumMin": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hslLumMin",
+      "min": 0,
+      "max": 1
+    },
+    "hslLumMax": {
+      "type": "float",
+      "default": 1,
+      "uniform": "hslLumMax",
+      "min": 0,
+      "max": 1
+    },
+    "hslFeather": {
+      "type": "float",
+      "default": 0.1,
+      "uniform": "hslFeather",
+      "min": 0,
+      "max": 0.5
+    },
+    "hslHueShift": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hslHueShift",
+      "min": -0.5,
+      "max": 0.5
+    },
+    "hslSatAdjust": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hslSatAdjust",
+      "min": -1,
+      "max": 1
+    },
+    "hslLumAdjust": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hslLumAdjust",
+      "min": -1,
+      "max": 1
+    },
+    "vignetteAmount": {
+      "type": "float",
+      "default": 0,
+      "uniform": "vignetteAmount",
+      "min": -1,
+      "max": 1
+    },
+    "vignetteMidpoint": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "vignetteMidpoint",
+      "min": 0,
+      "max": 1
+    },
+    "vignetteRoundness": {
+      "type": "float",
+      "default": 0,
+      "uniform": "vignetteRoundness",
+      "min": -1,
+      "max": 1
+    },
+    "vignetteFeather": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "vignetteFeather",
+      "min": 0,
+      "max": 1
+    },
+    "vigHiProtect": {
+      "type": "float",
+      "default": 0,
+      "uniform": "vigHiProtect",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "primary",
+      "program": "primary",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_primaryTex"
+      }
+    },
+    {
+      "name": "creative",
+      "program": "creative",
+      "inputs": {
+        "inputTex": "_primaryTex"
+      },
+      "outputs": {
+        "fragColor": "_creativeTex"
+      }
+    },
+    {
+      "name": "wheels",
+      "program": "wheels",
+      "inputs": {
+        "inputTex": "_creativeTex"
+      },
+      "outputs": {
+        "fragColor": "_wheelsTex"
+      }
+    },
+    {
+      "name": "hslSecondary",
+      "program": "hslSecondary",
+      "inputs": {
+        "inputTex": "_wheelsTex"
+      },
+      "outputs": {
+        "fragColor": "_hslTex"
+      }
+    },
+    {
+      "name": "lut",
+      "program": "lut",
+      "inputs": {
+        "inputTex": "_hslTex"
+      },
+      "outputs": {
+        "fragColor": "_lutTex"
+      }
+    },
+    {
+      "name": "vignette",
+      "program": "vignette",
+      "inputs": {
+        "inputTex": "_lutTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_primaryTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    },
+    "_creativeTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    },
+    "_wheelsTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    },
+    "_hslTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    },
+    "_lutTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    }
+  }
+}

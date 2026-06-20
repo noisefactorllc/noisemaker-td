@@ -1,0 +1,168 @@
+{
+  "name": "Life",
+  "namespace": "points",
+  "func": "life",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Type-based attraction/repulsion particle simulation",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "uniform": "stateSize"
+    },
+    "typeCount": {
+      "type": "int",
+      "default": 6,
+      "uniform": "typeCount",
+      "min": 2,
+      "max": 8
+    },
+    "attractionScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "attractionScale",
+      "min": 0,
+      "max": 5
+    },
+    "repulsionScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "repulsionScale",
+      "min": 0,
+      "max": 5
+    },
+    "minRadius": {
+      "type": "float",
+      "default": 0.01,
+      "uniform": "minRadius",
+      "min": 0.001,
+      "max": 0.05
+    },
+    "maxRadius": {
+      "type": "float",
+      "default": 0.08,
+      "uniform": "maxRadius",
+      "min": 0.02,
+      "max": 0.2
+    },
+    "maxSpeed": {
+      "type": "float",
+      "default": 0.003,
+      "uniform": "maxSpeed",
+      "min": 0.0005,
+      "max": 0.01
+    },
+    "friction": {
+      "type": "float",
+      "default": 0.1,
+      "uniform": "friction",
+      "min": 0,
+      "max": 1
+    },
+    "boundaryMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "boundaryMode",
+      "choices": {
+        "wrap": 0,
+        "bounce": 1
+      }
+    },
+    "matrixSeed": {
+      "type": "float",
+      "default": 42,
+      "uniform": "matrixSeed",
+      "min": 0,
+      "max": 1000
+    },
+    "symmetricForces": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "symmetricForces"
+    },
+    "useTypeColor": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "useTypeColor"
+    }
+  },
+  "passes": [
+    {
+      "name": "matrix",
+      "program": "matrix",
+      "inputs": {},
+      "uniforms": {
+        "typeCount": "typeCount",
+        "matrixSeed": "matrixSeed",
+        "symmetricForces": "symmetricForces"
+      },
+      "outputs": {
+        "fragColor": "forceMatrix"
+      }
+    },
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "dataTex": "global_life_data",
+        "forceMatrix": "forceMatrix",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "typeCount": "typeCount",
+        "attractionScale": "attractionScale",
+        "repulsionScale": "repulsionScale",
+        "minRadius": "minRadius",
+        "maxRadius": "maxRadius",
+        "maxSpeed": "maxSpeed",
+        "friction": "friction",
+        "boundaryMode": "boundaryMode",
+        "matrixSeed": "matrixSeed",
+        "symmetricForces": "symmetricForces",
+        "useTypeColor": "useTypeColor"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba",
+        "outData": "global_life_data"
+      },
+      "drawBuffers": 4
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_life_data": {
+      "width": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "height": {
+        "param": "stateSize",
+        "default": 256
+      },
+      "format": "rgba16f"
+    },
+    "forceMatrix": {
+      "width": 8,
+      "height": 8,
+      "format": "rgba16f"
+    }
+  }
+}

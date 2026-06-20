@@ -1,0 +1,47 @@
+// NM_INPUTS: positionsTex=0 normalsTex=1
+// NM_OUTPUT: fragColor
+#define positionsTex sTD2DInputs[0]
+#define normalsTex sTD2DInputs[1]
+// Preview mesh data as a visualization
+// Renders positions/normals as colors for debugging
+
+uniform vec2 resolution;
+uniform vec2 tileOffset;
+uniform vec2 fullResolution;
+
+
+
+out vec4 fragColor;
+
+void nm_main() {
+    vec2 globalCoord = gl_FragCoord.xy + tileOffset;
+    vec2 fullRes = fullResolution.x > 0.0 ? fullResolution : resolution;
+    // Global UV for image-space layout decisions (left/right half split)
+    vec2 globalUV = (gl_FragCoord.xy + tileOffset) / fullRes;
+    // Tile-local UV for sampling the mesh textures
+    vec2 uv = globalCoord / fullResolution;
+
+    // Sample mesh data using texture() for proper UV sampling
+    // The mesh textures are smaller than output, so use UV coordinates
+    vec4 pos = texture(positionsTex, gl_FragCoord.xy / vec2(textureSize(positionsTex, 0)));
+    vec4 normal = texture(normalsTex, gl_FragCoord.xy / vec2(textureSize(normalsTex, 0)));
+
+    // Visualize: left half shows positions, right half shows normals
+    vec3 color;
+    if (globalUV.x < 0.5) {
+        // Position visualization: map -1..1 to 0..1
+        color = pos.xyz * 0.5 + 0.5;
+    } else {
+        // Normal visualization: map -1..1 to 0..1
+        color = normal.xyz * 0.5 + 0.5;
+    }
+    
+    // Check if this is a valid vertex (w > 0 in position means valid vertex ID)
+    float alpha = 1.0;
+    
+    fragColor = vec4(color, alpha);
+}
+void main() {
+    nm_main();
+    fragColor = TDOutputSwizzle(fragColor);
+}

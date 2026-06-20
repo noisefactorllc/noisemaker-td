@@ -1,0 +1,70 @@
+{
+  "name": "Waves",
+  "namespace": "filter",
+  "func": "waves",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Sine wave distortion",
+  "paramAliases": {},
+  "globals": {
+    "strength": {
+      "type": "float",
+      "default": 25,
+      "uniform": "strength",
+      "min": 0,
+      "max": 100,
+      "zero": 0
+    },
+    "scale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "scale",
+      "min": 1,
+      "max": 5
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -5,
+      "max": 5
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "waves",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

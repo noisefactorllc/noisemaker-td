@@ -1,0 +1,141 @@
+{
+  "name": "Shape",
+  "namespace": "synth",
+  "func": "shape",
+  "starter": true,
+  "tags": [
+    "geometric"
+  ],
+  "description": "Interference patterns from geometric shapes",
+  "paramAliases": {
+    "loopAAmp": "speedA",
+    "loopBAmp": "speedB"
+  },
+  "globals": {
+    "loopAOffset": {
+      "type": "int",
+      "default": 40,
+      "define": "LOOP_A_OFFSET",
+      "choices": {
+        "Shapes:": null,
+        "circle": 10,
+        "triangle": 20,
+        "diamond": 30,
+        "square": 40,
+        "pentagon": 50,
+        "hexagon": 60,
+        "heptagon": 70,
+        "octagon": 80,
+        "nonagon": 90,
+        "decagon": 100,
+        "hendecagon": 110,
+        "dodecagon": 120,
+        "Directional:": null,
+        "horizontalScan": 200,
+        "verticalScan": 210,
+        "Noise:": null,
+        "noiseConstant": 300,
+        "noiseLinear": 310,
+        "noiseHermite": 320,
+        "noiseCatmullRom3x3": 330,
+        "noiseCatmullRom4x4": 340,
+        "noiseBSpline3x3": 350,
+        "noiseBSpline4x4": 360,
+        "noiseSimplex": 370,
+        "noiseSine": 380,
+        "Misc:": null,
+        "rings": 400,
+        "sine": 410
+      }
+    },
+    "loopBOffset": {
+      "type": "int",
+      "default": 30,
+      "define": "LOOP_B_OFFSET",
+      "choices": {
+        "Shapes:": null,
+        "circle": 10,
+        "triangle": 20,
+        "diamond": 30,
+        "square": 40,
+        "pentagon": 50,
+        "hexagon": 60,
+        "heptagon": 70,
+        "octagon": 80,
+        "nonagon": 90,
+        "decagon": 100,
+        "hendecagon": 110,
+        "dodecagon": 120,
+        "Directional:": null,
+        "horizontalScan": 200,
+        "verticalScan": 210,
+        "Noise:": null,
+        "noiseConstant": 300,
+        "noiseLinear": 310,
+        "noiseHermite": 320,
+        "noiseCatmullRom3x3": 330,
+        "noiseCatmullRom4x4": 340,
+        "noiseBSpline3x3": 350,
+        "noiseBSpline4x4": 360,
+        "noiseSimplex": 370,
+        "noiseSine": 380,
+        "Misc:": null,
+        "rings": 400,
+        "sine": 410
+      }
+    },
+    "loopAScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "loopAScale",
+      "min": 1,
+      "max": 100
+    },
+    "loopBScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "loopBScale",
+      "min": 1,
+      "max": 100
+    },
+    "speedA": {
+      "type": "int",
+      "default": 50,
+      "uniform": "speedA",
+      "min": -100,
+      "max": 100,
+      "zero": 0
+    },
+    "speedB": {
+      "type": "int",
+      "default": 50,
+      "uniform": "speedB",
+      "min": -100,
+      "max": 100,
+      "zero": 0
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "wrap": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "wrap"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "shape",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

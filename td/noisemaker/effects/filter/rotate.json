@@ -1,0 +1,52 @@
+{
+  "name": "Rotate",
+  "namespace": "filter",
+  "func": "rotate",
+  "starter": false,
+  "tags": [
+    "transform"
+  ],
+  "description": "Rotate image by specified angle",
+  "paramAliases": {},
+  "globals": {
+    "rotation": {
+      "type": "float",
+      "default": 45,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180,
+      "zero": 0
+    },
+    "wrap": {
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -4,
+      "max": 4,
+      "zero": 0
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "rot",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

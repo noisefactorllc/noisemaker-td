@@ -1,0 +1,62 @@
+{
+  "name": "Light Leak",
+  "namespace": "filter",
+  "func": "lightLeak",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Film light leak overlay with colorful Voronoi regions",
+  "paramAliases": {},
+  "globals": {
+    "alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1
+    },
+    "color": {
+      "type": "color",
+      "default": [
+        1,
+        0.8,
+        0.3
+      ],
+      "uniform": "color"
+    },
+    "speed": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "lightLeak",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "alpha": "alpha",
+        "color": "color",
+        "speed": "speed",
+        "seed": "seed"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

@@ -1,0 +1,76 @@
+{
+  "name": "Attractor",
+  "namespace": "points",
+  "func": "attractor",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Strange attractors: chaotic dynamic systems visualization",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "uniform": "stateSize"
+    },
+    "attractor": {
+      "type": "int",
+      "default": 0,
+      "uniform": "attractor",
+      "choices": {
+        "lorenz": 0,
+        "rossler": 1,
+        "aizawa": 2,
+        "thomas": 3,
+        "halvorsen": 4,
+        "chen": 5,
+        "dadras": 6
+      }
+    },
+    "speed": {
+      "type": "float",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0.01,
+      "max": 2
+    },
+    "viewMode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "viewMode"
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba"
+      },
+      "uniforms": {
+        "attractor": "attractor",
+        "speed": "speed"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

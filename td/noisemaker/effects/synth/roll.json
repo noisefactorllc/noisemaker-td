@@ -1,0 +1,66 @@
+{
+  "name": "Roll",
+  "namespace": "synth",
+  "func": "roll",
+  "starter": true,
+  "tags": [
+    "midi"
+  ],
+  "description": "MIDI piano roll visualizer",
+  "paramAliases": {},
+  "globals": {
+    "color": {
+      "type": "color",
+      "default": [
+        0,
+        1,
+        0
+      ],
+      "uniform": "lineColor"
+    },
+    "gain": {
+      "type": "float",
+      "default": 1,
+      "uniform": "gain",
+      "min": 0.1,
+      "max": 5
+    },
+    "speed": {
+      "type": "float",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0.5,
+      "max": 5
+    }
+  },
+  "passes": [
+    {
+      "name": "scroll",
+      "program": "roll",
+      "inputs": {
+        "feedbackTex": "_rollFb",
+        "noteGridTex": "midiNoteGrid"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    },
+    {
+      "name": "feedback",
+      "program": "copy",
+      "inputs": {
+        "inputTex": "outputTex"
+      },
+      "outputs": {
+        "fragColor": "_rollFb"
+      }
+    }
+  ],
+  "textures": {
+    "_rollFb": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  }
+}

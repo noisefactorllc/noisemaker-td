@@ -1,0 +1,98 @@
+{
+  "name": "Corrupt",
+  "namespace": "filter",
+  "func": "corrupt",
+  "starter": false,
+  "tags": [
+    "distort",
+    "glitch"
+  ],
+  "description": "Scanline-based data corruption",
+  "paramAliases": {},
+  "globals": {
+    "intensity": {
+      "type": "float",
+      "default": 50,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 100
+    },
+    "bandHeight": {
+      "type": "float",
+      "default": 10,
+      "uniform": "bandHeight",
+      "min": 1,
+      "max": 100
+    },
+    "sort": {
+      "type": "float",
+      "default": 50,
+      "uniform": "sort",
+      "min": 0,
+      "max": 100
+    },
+    "shift": {
+      "type": "float",
+      "default": 50,
+      "uniform": "shift",
+      "min": 0,
+      "max": 100
+    },
+    "channelShift": {
+      "type": "float",
+      "default": 0,
+      "uniform": "channelShift",
+      "min": 0,
+      "max": 100
+    },
+    "melt": {
+      "type": "float",
+      "default": 0,
+      "uniform": "melt",
+      "min": 0,
+      "max": 100
+    },
+    "scatter": {
+      "type": "float",
+      "default": 0,
+      "uniform": "scatter",
+      "min": 0,
+      "max": 100
+    },
+    "bits": {
+      "type": "float",
+      "default": 0,
+      "uniform": "bits",
+      "min": 0,
+      "max": 100
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "corrupt",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

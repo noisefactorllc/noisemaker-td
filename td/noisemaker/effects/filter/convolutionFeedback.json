@@ -1,0 +1,99 @@
+{
+  "name": "Convolution Feedback",
+  "namespace": "filter",
+  "func": "convolutionFeedback",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Convolution feedback with blur and sharpen",
+  "paramAliases": {},
+  "globals": {
+    "sharpenRadius": {
+      "type": "int",
+      "default": 5,
+      "uniform": "sharpenRadius",
+      "min": 1,
+      "max": 10
+    },
+    "sharpenAmount": {
+      "type": "float",
+      "default": 2.5,
+      "uniform": "sharpenAmount",
+      "min": 0,
+      "max": 3
+    },
+    "blurRadius": {
+      "type": "int",
+      "default": 4,
+      "uniform": "blurRadius",
+      "min": 1,
+      "max": 10
+    },
+    "blurAmount": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "blurAmount",
+      "min": 0,
+      "max": 1
+    },
+    "intensity": {
+      "type": "float",
+      "default": 0.75,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 1,
+      "zero": 0
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    }
+  },
+  "passes": [
+    {
+      "name": "sharpen",
+      "program": "cfSharpen",
+      "inputs": {
+        "inputTex": "selfTex"
+      },
+      "outputs": {
+        "fragColor": "_cfSharpened"
+      }
+    },
+    {
+      "name": "blur",
+      "program": "cfBlur",
+      "inputs": {
+        "inputTex": "_cfSharpened"
+      },
+      "outputs": {
+        "fragColor": "_cfBlurred"
+      }
+    },
+    {
+      "name": "blend",
+      "program": "cfBlend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "feedbackTex": "_cfBlurred"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_cfSharpened": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_cfBlurred": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Pixels",
+  "namespace": "filter",
+  "func": "pixels",
+  "starter": false,
+  "tags": [
+    "pixel"
+  ],
+  "description": "Pixelation effect for retro look",
+  "paramAliases": {},
+  "globals": {
+    "size": {
+      "type": "int",
+      "default": 16,
+      "uniform": "size",
+      "min": 1,
+      "max": 256,
+      "zero": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "pixels",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

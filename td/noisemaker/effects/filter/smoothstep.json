@@ -1,0 +1,42 @@
+{
+  "name": "Smoothstep",
+  "namespace": "filter",
+  "func": "smoothstep",
+  "starter": false,
+  "tags": [
+    "edges",
+    "util"
+  ],
+  "description": "Smooth Hermite interpolation between edges",
+  "paramAliases": {},
+  "globals": {
+    "edge0": {
+      "type": "float",
+      "default": 0,
+      "uniform": "edge0",
+      "min": 0,
+      "max": 1
+    },
+    "edge1": {
+      "type": "float",
+      "default": 1,
+      "uniform": "edge1",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "smoothstep",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search synth, filter\n\ncell()\n  .smoothstep(edge1: 0.51)\n  .write(o0)"
+}

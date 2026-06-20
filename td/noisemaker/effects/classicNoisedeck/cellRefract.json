@@ -1,0 +1,139 @@
+{
+  "name": "CellRefract",
+  "namespace": "classicNoisedeck",
+  "func": "cellRefract",
+  "starter": false,
+  "tags": [
+    "distort",
+    "noise"
+  ],
+  "description": "Cell-based refraction",
+  "paramAliases": {
+    "cellSmooth": "smooth",
+    "cellVariation": "variation",
+    "refractAmt": "amount",
+    "refractDir": "direction",
+    "loopAmp": "speed"
+  },
+  "globals": {
+    "amount": {
+      "type": "float",
+      "default": 23,
+      "uniform": "refractAmt",
+      "min": 0,
+      "max": 100
+    },
+    "direction": {
+      "type": "float",
+      "default": 0,
+      "uniform": "direction",
+      "min": 0,
+      "max": 360
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "shape": {
+      "type": "int",
+      "default": 1,
+      "define": "SHAPE",
+      "choices": {
+        "circle": 0,
+        "diamond": 1,
+        "hexagon": 2,
+        "octagon": 3,
+        "square": 4,
+        "triangle": 6
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 50,
+      "uniform": "scale",
+      "min": 1,
+      "max": 100
+    },
+    "cellScale": {
+      "type": "float",
+      "default": 75,
+      "uniform": "cellScale",
+      "min": 1,
+      "max": 100
+    },
+    "smooth": {
+      "type": "float",
+      "default": 0,
+      "uniform": "cellSmooth",
+      "min": 0,
+      "max": 100
+    },
+    "variation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "variation",
+      "min": 0,
+      "max": 100
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "kernel": {
+      "type": "int",
+      "default": 0,
+      "define": "KERNEL",
+      "choices": {
+        "none": 0,
+        "blur": 1,
+        "derivatives": 120,
+        "derivDivide": 2,
+        "edge": 3,
+        "emboss": 4,
+        "litEdge": 9,
+        "outline": 5,
+        "pixels": 100,
+        "posterize": 110,
+        "shadow": 6,
+        "sharpen": 7,
+        "sobel": 8
+      }
+    },
+    "effectWidth": {
+      "type": "int",
+      "default": 0,
+      "uniform": "effectWidth",
+      "min": 0,
+      "max": 10
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "cellRefract",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

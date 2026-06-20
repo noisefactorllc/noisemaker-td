@@ -1,0 +1,53 @@
+{
+  "name": "Tint",
+  "namespace": "filter",
+  "func": "tint",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Colorize input texture with a color overlay",
+  "paramAliases": {},
+  "globals": {
+    "color": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "color"
+    },
+    "alpha": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1
+    },
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "overlay": 0,
+        "multiply": 1,
+        "recolor": 2
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "colorize",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\nnoise(ridges: true, colorMode: mono)\n.tint(color: #ff0000, alpha: 0.5, mode: overlay)\n.write(o0)"
+}

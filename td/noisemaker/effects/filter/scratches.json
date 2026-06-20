@@ -1,0 +1,58 @@
+{
+  "name": "Scratches",
+  "namespace": "filter",
+  "func": "scratches",
+  "starter": false,
+  "tags": [
+    "noise"
+  ],
+  "description": "Film scratch overlay",
+  "paramAliases": {},
+  "globals": {
+    "density": {
+      "type": "float",
+      "default": 0.3,
+      "uniform": "density",
+      "min": 0,
+      "max": 1
+    },
+    "alpha": {
+      "type": "float",
+      "default": 0.75,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "blend",
+      "program": "scratchesBlend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "overlayTex": "overlayTex"
+      },
+      "uniforms": {
+        "alpha": "alpha"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "overlayTex": {
+      "width": "screen",
+      "height": "screen",
+      "format": "rgba8"
+    }
+  },
+  "defaultProgram": "search filter, synth\n\nsolid(color: #2b2b2b)\n.scratches()\n.write(o0)"
+}

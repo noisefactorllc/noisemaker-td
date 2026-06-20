@@ -1,0 +1,110 @@
+{
+  "name": "Shadow",
+  "namespace": "mixer",
+  "func": "shadow",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Cast a shadow or glow from one input onto another",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "maskSource": {
+      "type": "int",
+      "default": 0,
+      "uniform": "maskSource",
+      "choices": {
+        "sourceA": 0,
+        "sourceB": 1
+      }
+    },
+    "sourceChannel": {
+      "type": "int",
+      "default": 0,
+      "uniform": "sourceChannel",
+      "choices": {
+        "red": 0,
+        "green": 1,
+        "blue": 2,
+        "alpha": 3
+      }
+    },
+    "threshold": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 1
+    },
+    "color": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "color"
+    },
+    "blur": {
+      "type": "float",
+      "default": 1,
+      "uniform": "blur",
+      "min": 0,
+      "max": 3,
+      "zero": 0
+    },
+    "spread": {
+      "type": "float",
+      "default": 0,
+      "uniform": "spread",
+      "min": 0,
+      "max": 1
+    },
+    "offsetX": {
+      "type": "float",
+      "default": 0.1,
+      "uniform": "offsetX",
+      "min": -1,
+      "max": 1,
+      "zero": 0
+    },
+    "offsetY": {
+      "type": "float",
+      "default": -0.1,
+      "uniform": "offsetY",
+      "min": -1,
+      "max": 1,
+      "zero": 0
+    },
+    "wrap": {
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+        "hide": 0,
+        "mirror": 1,
+        "repeat": 2,
+        "clamp": 3
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "shadow",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search mixer, synth\n\nnoise(scaleX: 100, scaleY: 100)\n.write(o0)\n\nnoise(ridges: true, colorMode: mono)\n.shadow(tex: read(o0))\n.write(o1)"
+}

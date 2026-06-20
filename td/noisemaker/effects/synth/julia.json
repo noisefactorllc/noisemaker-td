@@ -1,0 +1,166 @@
+{
+  "name": "Julia",
+  "namespace": "synth",
+  "func": "julia",
+  "starter": true,
+  "tags": [
+    "fractal"
+  ],
+  "description": "Julia set explorer with deep zoom",
+  "paramAliases": {},
+  "globals": {
+    "poi": {
+      "type": "int",
+      "default": 10,
+      "uniform": "poi",
+      "choices": {
+        "manual": 0,
+        "basilica": 4,
+        "dendrite": 3,
+        "douadyRabbit": 1,
+        "doubleSpiral": 10,
+        "dragonCurve": 7,
+        "galaxy": 5,
+        "lightning": 6,
+        "sanMarco": 8,
+        "siegel": 2,
+        "starfish": 9
+      }
+    },
+    "outputMode": {
+      "type": "int",
+      "default": 3,
+      "uniform": "outputMode",
+      "choices": {
+        "distance": 1,
+        "normalMap": 4,
+        "orbitTrap": 3,
+        "smoothIteration": 0,
+        "stripeAverage": 2
+      }
+    },
+    "iterations": {
+      "type": "int",
+      "default": 300,
+      "uniform": "iterations",
+      "min": 50,
+      "max": 1000
+    },
+    "cReal": {
+      "type": "float",
+      "default": -0.123,
+      "uniform": "cReal",
+      "min": -2,
+      "max": 2
+    },
+    "cImag": {
+      "type": "float",
+      "default": 0.745,
+      "uniform": "cImag",
+      "min": -2,
+      "max": 2
+    },
+    "centerX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "centerX",
+      "min": -3,
+      "max": 3
+    },
+    "centerY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "centerY",
+      "min": -3,
+      "max": 3
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "cPath": {
+      "type": "int",
+      "default": 0,
+      "uniform": "cPath",
+      "choices": {
+        "none": 0,
+        "bulb": 3,
+        "cardioid": 1,
+        "circle": 2
+      }
+    },
+    "cSpeed": {
+      "type": "float",
+      "default": 0.3,
+      "uniform": "cSpeed",
+      "min": 0,
+      "max": 2,
+      "zero": 0
+    },
+    "cRadius": {
+      "type": "float",
+      "default": 0.7885,
+      "uniform": "cRadius",
+      "min": 0.01,
+      "max": 1.5
+    },
+    "zoomSpeed": {
+      "type": "float",
+      "default": 0,
+      "uniform": "zoomSpeed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "zoomDepth": {
+      "type": "float",
+      "default": 0,
+      "uniform": "zoomDepth",
+      "min": 0,
+      "max": 14
+    },
+    "stripeFreq": {
+      "type": "float",
+      "default": 5,
+      "uniform": "stripeFreq",
+      "min": 0.5,
+      "max": 20
+    },
+    "trapShape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "trapShape",
+      "choices": {
+        "circle": 2,
+        "cross": 1,
+        "point": 0
+      }
+    },
+    "lightAngle": {
+      "type": "float",
+      "default": 45,
+      "uniform": "lightAngle",
+      "min": 0,
+      "max": 360
+    },
+    "invert": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "invert"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "julia",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

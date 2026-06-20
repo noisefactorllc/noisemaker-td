@@ -1,0 +1,143 @@
+{
+  "name": "Shape3D",
+  "namespace": "synth3d",
+  "func": "shape3d",
+  "starter": true,
+  "tags": [
+    "3d",
+    "geometric"
+  ],
+  "description": "3D polyhedral shape generator",
+  "paramAliases": {},
+  "globals": {
+    "volumeSize": {
+      "type": "int",
+      "default": 64,
+      "uniform": "volumeSize",
+      "choices": {
+        "x16": 16,
+        "x32": 32,
+        "x64": 64,
+        "x128": 128
+      }
+    },
+    "colorMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "colorMode",
+      "choices": {
+        "mono": 0,
+        "rgb": 1
+      }
+    },
+    "loopAOffset": {
+      "type": "int",
+      "default": 40,
+      "uniform": "loopAOffset",
+      "choices": {
+        "Platonic Solids:": null,
+        "tetrahedron": 10,
+        "cube": 20,
+        "octahedron": 30,
+        "dodecahedron": 40,
+        "icosahedron": 50,
+        "Other Primitives:": null,
+        "sphere": 100,
+        "torus": 110,
+        "cylinder": 120,
+        "cone": 130,
+        "capsule": 140
+      }
+    },
+    "loopBOffset": {
+      "type": "int",
+      "default": 30,
+      "uniform": "loopBOffset",
+      "choices": {
+        "Platonic Solids:": null,
+        "tetrahedron": 10,
+        "cube": 20,
+        "octahedron": 30,
+        "dodecahedron": 40,
+        "icosahedron": 50,
+        "Other Primitives:": null,
+        "sphere": 100,
+        "torus": 110,
+        "cylinder": 120,
+        "cone": 130,
+        "capsule": 140
+      }
+    },
+    "loopAScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "loopAScale",
+      "min": 1,
+      "max": 100
+    },
+    "loopBScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "loopBScale",
+      "min": 1,
+      "max": 100
+    },
+    "speedA": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speedA",
+      "min": -5,
+      "max": 5,
+      "zero": 0
+    },
+    "speedB": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speedB",
+      "min": -5,
+      "max": 5,
+      "zero": 0
+    }
+  },
+  "passes": [
+    {
+      "name": "precompute",
+      "program": "precompute",
+      "inputs": {},
+      "outputs": {
+        "color": "volumeCache",
+        "geoOut": "geoBuffer"
+      },
+      "drawBuffers": 2
+    }
+  ],
+  "textures": {
+    "volumeCache": {
+      "width": {
+        "param": "volumeSize",
+        "default": 64
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 4096
+      },
+      "format": "rgba16f"
+    },
+    "geoBuffer": {
+      "width": {
+        "param": "volumeSize",
+        "default": 64
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 4096
+      },
+      "format": "rgba16f"
+    }
+  },
+  "defaultProgram": "search synth3d, filter3d, render\n\nshape3d(speedA: -2, speedB: 2)\n.render3d(threshold: 0.75)\n.write(o0)",
+  "outputTex3d": "volumeCache",
+  "outputGeo": "geoBuffer"
+}

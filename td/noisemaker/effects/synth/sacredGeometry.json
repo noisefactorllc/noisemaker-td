@@ -1,0 +1,127 @@
+{
+  "name": "SacredGeometry",
+  "namespace": "synth",
+  "func": "sacredGeometry",
+  "starter": true,
+  "tags": [
+    "geometric",
+    "pattern"
+  ],
+  "description": "Flower-of-life and related sacred-geometry lattices",
+  "paramAliases": {},
+  "globals": {
+    "geometry": {
+      "type": "int",
+      "default": 0,
+      "uniform": "geometry",
+      "choices": {
+        "borromean": 6,
+        "flower": 0,
+        "fruit": 1,
+        "metatron": 3,
+        "seed": 4,
+        "starPolygon": 7,
+        "triquetra": 8,
+        "vesica": 5
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 10,
+      "uniform": "scale",
+      "min": 1,
+      "max": 20
+    },
+    "rings": {
+      "type": "int",
+      "default": 3,
+      "uniform": "rings",
+      "min": 1,
+      "max": 6
+    },
+    "starPoints": {
+      "type": "int",
+      "default": 5,
+      "uniform": "starPoints",
+      "min": 5,
+      "max": 12
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "thickness": {
+      "type": "float",
+      "default": 0.2,
+      "uniform": "thickness",
+      "min": 0,
+      "max": 1
+    },
+    "smoothness": {
+      "type": "float",
+      "default": 0.02,
+      "uniform": "smoothness",
+      "min": 0,
+      "max": 1
+    },
+    "fgColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "fgColor"
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "bgColor"
+    },
+    "animation": {
+      "type": "int",
+      "default": 0,
+      "uniform": "animation",
+      "choices": {
+        "none": 0,
+        "pulse": 2,
+        "ripple": 4,
+        "rotate": 1,
+        "unfold": 5
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": -5,
+      "max": 5,
+      "zero": 0
+    },
+    "pulseDepth": {
+      "type": "float",
+      "default": 0.15,
+      "uniform": "pulseDepth",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "sacredGeometry",
+      "inputs": {},
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

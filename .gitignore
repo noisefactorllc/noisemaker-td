@@ -1,0 +1,22 @@
+# TouchDesigner (generated/binary; rebuild via td/make_bootstrap.py)
+td/*.toe
+td/*.toe.toc
+td/*.dir/
+td/Backup/
+
+# Parity artifacts (generated — goldens regenerate from the reference)
+parity/out/*.png
+parity/out/*.graph.json
+parity/out/*.report.json
+err.tmp
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+parity/.venv/

@@ -1,0 +1,210 @@
+{
+  "name": "Navier-Stokes",
+  "namespace": "synth",
+  "func": "navierStokes",
+  "starter": true,
+  "tags": [
+    "sim"
+  ],
+  "description": "Stable-fluids Navier-Stokes solver",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "zoom": {
+      "type": "int",
+      "default": 1,
+      "choices": {
+        "x1": 1,
+        "x2": 2,
+        "x4": 4,
+        "x8": 8,
+        "x16": 16,
+        "x32": 32
+      }
+    },
+    "iterations": {
+      "type": "int",
+      "default": 30,
+      "uniform": "iterations",
+      "min": 4,
+      "max": 40
+    },
+    "smoothing": {
+      "type": "int",
+      "default": 1,
+      "uniform": "smoothing",
+      "choices": {
+        "constant": 0,
+        "linear": 1,
+        "hermite": 2,
+        "catmullRom3x3": 3,
+        "catmullRom4x4": 4,
+        "bSpline3x3": 5,
+        "bSpline4x4": 6
+      }
+    },
+    "speed": {
+      "type": "float",
+      "default": 100,
+      "uniform": "speed",
+      "min": 5,
+      "max": 145
+    },
+    "dyeDecay": {
+      "type": "float",
+      "default": 98,
+      "uniform": "dyeDecay",
+      "min": 80,
+      "max": 100
+    },
+    "velocityDecay": {
+      "type": "float",
+      "default": 99,
+      "uniform": "velocityDecay",
+      "min": 80,
+      "max": 100
+    },
+    "inputForce": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "inputForce",
+      "min": 0,
+      "max": 1
+    },
+    "inputDye": {
+      "type": "float",
+      "default": 0.9,
+      "uniform": "inputDye",
+      "min": 0,
+      "max": 1
+    },
+    "inputIntensity": {
+      "type": "float",
+      "default": 10,
+      "uniform": "inputIntensity",
+      "min": 0,
+      "max": 100
+    },
+    "resetState": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "resetState"
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "splat",
+      "program": "nsSplat",
+      "inputs": {
+        "bufTex": "global_ns_velocity",
+        "inputTex": "tex"
+      },
+      "outputs": {
+        "fragColor": "global_ns_velocity"
+      }
+    },
+    {
+      "name": "advect",
+      "program": "nsAdvect",
+      "inputs": {
+        "bufTex": "global_ns_velocity"
+      },
+      "outputs": {
+        "fragColor": "global_ns_velocity"
+      }
+    },
+    {
+      "name": "divergence",
+      "program": "nsDivergence",
+      "inputs": {
+        "velTex": "global_ns_velocity"
+      },
+      "outputs": {
+        "fragColor": "global_ns_pressure"
+      }
+    },
+    {
+      "name": "pressure",
+      "program": "nsPressure",
+      "inputs": {
+        "bufTex": "global_ns_pressure"
+      },
+      "outputs": {
+        "fragColor": "global_ns_pressure"
+      },
+      "repeat": "iterations"
+    },
+    {
+      "name": "gradient",
+      "program": "nsGradient",
+      "inputs": {
+        "velTex": "global_ns_velocity",
+        "pressureTex": "global_ns_pressure"
+      },
+      "outputs": {
+        "fragColor": "global_ns_velocity"
+      }
+    },
+    {
+      "name": "smooth",
+      "program": "nsSmooth",
+      "inputs": {
+        "canvasTex": "global_ns_velocity"
+      },
+      "outputs": {
+        "fragColor": "global_ns_smoothed"
+      }
+    },
+    {
+      "name": "render",
+      "program": "ns",
+      "inputs": {
+        "fbTex": "global_ns_smoothed",
+        "inputTex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_ns_velocity": {
+      "width": {
+        "screenDivide": "zoom",
+        "default": 4
+      },
+      "height": {
+        "screenDivide": "zoom",
+        "default": 4
+      },
+      "format": "rgba16f"
+    },
+    "global_ns_pressure": {
+      "width": {
+        "screenDivide": "zoom",
+        "default": 4
+      },
+      "height": {
+        "screenDivide": "zoom",
+        "default": 4
+      },
+      "format": "rgba16f"
+    },
+    "global_ns_smoothed": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  },
+  "defaultProgram": "search synth\n\nnoise(\n  type: hermite,\n  ridges: true,\n  speed: 30,\n  colorMode: mono\n)\n  .write(o0)\n\nnavierStokes(\n  tex: read(o0),\n  dyeDecay: 98,\n  inputForce: 0.5,\n  inputIntensity: 10\n)\n  .write(o1)\n\nrender(o1)"
+}

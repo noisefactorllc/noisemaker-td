@@ -1,0 +1,123 @@
+{
+  "name": "Buddhabrot",
+  "namespace": "points",
+  "func": "buddhabrot",
+  "starter": false,
+  "tags": [
+    "fractal",
+    "sim"
+  ],
+  "description": "Buddhabrot fractal via progressive orbit accumulation",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 512,
+      "uniform": "stateSize"
+    },
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "anti": 1,
+        "standard": 0
+      }
+    },
+    "maxIter": {
+      "type": "int",
+      "default": 200,
+      "uniform": "maxIter",
+      "min": 20,
+      "max": 2000
+    },
+    "minIter": {
+      "type": "int",
+      "default": 1,
+      "uniform": "minIter",
+      "min": 1,
+      "max": 1000
+    },
+    "centerX": {
+      "type": "float",
+      "default": -0.5,
+      "uniform": "centerX",
+      "min": -3,
+      "max": 3
+    },
+    "centerY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "centerY",
+      "min": -3,
+      "max": 3
+    },
+    "zoom": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zoom",
+      "min": 0.1,
+      "max": 5
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba"
+      },
+      "uniforms": {
+        "maxIter": "maxIter",
+        "minIter": "minIter",
+        "mode": "mode",
+        "centerX": "centerX",
+        "centerY": "centerY",
+        "zoom": "zoom"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "zWrite",
+      "program": "zWrite",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel"
+      },
+      "outputs": {
+        "fragColor": "global_zState"
+      }
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_zState": {
+      "width": {
+        "param": "stateSize",
+        "paramDefault": 512
+      },
+      "height": {
+        "param": "stateSize",
+        "paramDefault": 512
+      },
+      "format": "rgba32float"
+    }
+  },
+  "defaultProgram": "search points, synth, render\n\nsolid()\n  .pointsEmit(stateSize: 512)\n  .buddhabrot()\n  .pointsRender(intensity: 99)\n  .write(o0)\n\nrender(o0)"
+}

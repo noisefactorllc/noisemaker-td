@@ -1,0 +1,54 @@
+{
+  "name": "Apply Mode",
+  "namespace": "mixer",
+  "func": "applyMode",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Apply brightness, hue, or saturation from source B to source A",
+  "paramAliases": {
+    "mixAmt": "mix"
+  },
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "brightness": 0,
+        "hue": 1,
+        "saturation": 2
+      }
+    },
+    "mix": {
+      "type": "float",
+      "default": 0,
+      "uniform": "mixAmt",
+      "min": -100,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "applyMode",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "uniforms": {
+        "mixAmt": "mix"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search mixer, synth\n\nnoise(seed: 1, ridges: true)\n.write(o0)\n\nperlin()\n.applyMode(tex: read(o0))\n.write(o1)"
+}

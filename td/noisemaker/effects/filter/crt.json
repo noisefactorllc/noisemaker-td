@@ -1,0 +1,53 @@
+{
+  "name": "CRT",
+  "namespace": "filter",
+  "func": "crt",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "CRT monitor simulation",
+  "paramAliases": {},
+  "globals": {
+    "alpha": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 1,
+      "zero": 0
+    },
+    "speed": {
+      "type": "float",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "crt",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "alpha": "alpha",
+        "speed": "speed",
+        "seed": "seed"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

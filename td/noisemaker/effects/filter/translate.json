@@ -1,0 +1,51 @@
+{
+  "name": "Translate",
+  "namespace": "filter",
+  "func": "translate",
+  "starter": false,
+  "tags": [
+    "transform"
+  ],
+  "description": "Translate image in X and Y",
+  "paramAliases": {},
+  "globals": {
+    "x": {
+      "type": "float",
+      "default": 0,
+      "uniform": "x",
+      "min": -1,
+      "max": 1
+    },
+    "y": {
+      "type": "float",
+      "default": 0,
+      "uniform": "y",
+      "min": -1,
+      "max": 1
+    },
+    "wrap": {
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "translate",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\ntestPattern()\n  .translate(x: 0.05, y: -0.05)\n  .write(o0)"
+}

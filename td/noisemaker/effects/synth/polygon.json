@@ -1,0 +1,85 @@
+{
+  "name": "Polygon",
+  "namespace": "synth",
+  "func": "polygon",
+  "starter": true,
+  "tags": [
+    "geometric"
+  ],
+  "description": "Geometric shape generator",
+  "paramAliases": {},
+  "globals": {
+    "sides": {
+      "type": "int",
+      "default": 3,
+      "uniform": "sides",
+      "min": 3,
+      "max": 64
+    },
+    "radius": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "radius",
+      "min": 0,
+      "max": 1
+    },
+    "smooth": {
+      "type": "float",
+      "default": 0.01,
+      "uniform": "smoothing",
+      "min": 0,
+      "max": 1,
+      "zero": 0
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "fgColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "fgColor"
+    },
+    "fgAlpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "fgAlpha",
+      "min": 0,
+      "max": 1
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "bgColor"
+    },
+    "bgAlpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "bgAlpha",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "shape",
+      "inputs": {},
+      "outputs": {
+        "color": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

@@ -1,0 +1,141 @@
+{
+  "name": "Mod Pattern",
+  "namespace": "synth",
+  "func": "modPattern",
+  "starter": true,
+  "tags": [
+    "geometric",
+    "pattern"
+  ],
+  "description": "Interference patterns from modulo operations",
+  "paramAliases": {},
+  "globals": {
+    "shape1": {
+      "type": "int",
+      "default": 0,
+      "uniform": "shape1",
+      "min": 0,
+      "max": 2,
+      "choices": {
+        "plus": 0,
+        "square": 1,
+        "diamond": 2
+      }
+    },
+    "scale1": {
+      "type": "float",
+      "default": 18,
+      "uniform": "scale1",
+      "min": 0.1,
+      "max": 20
+    },
+    "repeat1": {
+      "type": "float",
+      "default": 5,
+      "uniform": "repeat1",
+      "min": 0,
+      "max": 20
+    },
+    "shape2": {
+      "type": "int",
+      "default": 1,
+      "uniform": "shape2",
+      "min": 0,
+      "max": 2,
+      "choices": {
+        "plus": 0,
+        "square": 1,
+        "diamond": 2
+      }
+    },
+    "scale2": {
+      "type": "float",
+      "default": 8,
+      "uniform": "scale2",
+      "min": 0.1,
+      "max": 10
+    },
+    "repeat2": {
+      "type": "float",
+      "default": 8,
+      "uniform": "repeat2",
+      "min": 0,
+      "max": 10
+    },
+    "shape3": {
+      "type": "int",
+      "default": 2,
+      "uniform": "shape3",
+      "min": 0,
+      "max": 2,
+      "choices": {
+        "plus": 0,
+        "square": 1,
+        "diamond": 2
+      }
+    },
+    "scale3": {
+      "type": "float",
+      "default": 1.5,
+      "uniform": "scale3",
+      "min": 0.1,
+      "max": 20
+    },
+    "repeat3": {
+      "type": "float",
+      "default": 1.5,
+      "uniform": "repeat3",
+      "min": 0,
+      "max": 5
+    },
+    "blend": {
+      "type": "int",
+      "default": 0,
+      "uniform": "blend",
+      "min": 0,
+      "max": 3,
+      "choices": {
+        "add": 0,
+        "max": 1,
+        "mix": 2,
+        "rgb": 3
+      }
+    },
+    "smoothing": {
+      "type": "float",
+      "default": 0,
+      "uniform": "smoothing",
+      "min": 0,
+      "max": 3
+    },
+    "animMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "animMode",
+      "choices": {
+        "shift": 0,
+        "pan": 1,
+        "phase": 2
+      }
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "modPattern",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

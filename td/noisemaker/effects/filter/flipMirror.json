@@ -1,0 +1,45 @@
+{
+  "name": "FlipMirror",
+  "namespace": "filter",
+  "func": "flipMirror",
+  "starter": false,
+  "tags": [
+    "transform"
+  ],
+  "description": "Flip and mirror image transformations",
+  "paramAliases": {},
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 15,
+      "uniform": "flipMode",
+      "choices": {
+        "none": 0,
+        "all": 1,
+        "horizontal": 2,
+        "vertical": 3,
+        "mirrorLtoR": 11,
+        "mirrorRtoL": 12,
+        "mirrorUtoD": 13,
+        "mirrorDtoU": 14,
+        "mirrorLtoRUtoD": 15,
+        "mirrorLtoRDtoU": 16,
+        "mirrorRtoLUtoD": 17,
+        "mirrorRtoLDtoU": 18
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "flipMirror",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

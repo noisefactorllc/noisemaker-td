@@ -1,0 +1,88 @@
+{
+  "name": "Cell",
+  "namespace": "synth",
+  "func": "cell",
+  "starter": true,
+  "tags": [
+    "noise",
+    "geometric"
+  ],
+  "description": "Cellular/Voronoi noise with distance metrics",
+  "paramAliases": {
+    "cellVariation": "variation",
+    "loopAmp": "speed"
+  },
+  "globals": {
+    "shape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "metric",
+      "choices": {
+        "circle": 0,
+        "diamond": 1,
+        "hexagon": 2,
+        "octagon": 3,
+        "square": 4,
+        "triangle": 6
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 75,
+      "uniform": "scale",
+      "min": 1,
+      "max": 100
+    },
+    "cellScale": {
+      "type": "float",
+      "default": 87,
+      "uniform": "cellScale",
+      "min": 1,
+      "max": 100
+    },
+    "cellSmooth": {
+      "type": "float",
+      "default": 0,
+      "uniform": "cellSmooth",
+      "min": 0,
+      "max": 100
+    },
+    "variation": {
+      "type": "float",
+      "default": 50,
+      "uniform": "variation",
+      "min": 0,
+      "max": 100
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "cell",
+      "inputs": {},
+      "uniforms": {
+        "cellSmooth": "cellSmooth",
+        "speed": "speed"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

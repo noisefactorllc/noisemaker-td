@@ -1,0 +1,66 @@
+{
+  "name": "Polar",
+  "namespace": "filter",
+  "func": "polar",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Polar and vortex coordinate transforms",
+  "paramAliases": {},
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "polarMode",
+      "choices": {
+        "polar": 0,
+        "vortex": 1
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 0,
+      "uniform": "scale",
+      "min": -2,
+      "max": 2
+    },
+    "rotation": {
+      "type": "int",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -2,
+      "max": 2
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -2,
+      "max": 2
+    },
+    "aspectLens": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "aspectLens"
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "polar",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

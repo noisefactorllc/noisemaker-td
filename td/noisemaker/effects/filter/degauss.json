@@ -1,0 +1,61 @@
+{
+  "name": "Degauss",
+  "namespace": "filter",
+  "func": "degauss",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "CRT degauss effect",
+  "paramAliases": {},
+  "globals": {
+    "displacement": {
+      "type": "float",
+      "default": 0.0625,
+      "uniform": "displacement",
+      "min": 0,
+      "max": 0.25
+    },
+    "direction": {
+      "type": "float",
+      "default": 0,
+      "uniform": "direction",
+      "min": -180,
+      "max": 180
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "speed": {
+      "type": "float",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 2
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "degauss",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "displacement": "displacement",
+        "speed": "speed",
+        "seed": "seed",
+        "direction": "direction"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\ntestPattern()\n.degauss()\n.write(o0)"
+}

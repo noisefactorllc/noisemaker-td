@@ -1,0 +1,143 @@
+{
+  "name": "Splat",
+  "namespace": "classicNoisedeck",
+  "func": "splat",
+  "starter": false,
+  "tags": [
+    "noise"
+  ],
+  "description": "Splatter paint effect",
+  "paramAliases": {
+    "splatColor": "color",
+    "splatCutoff": "cutoff",
+    "splatMode": "mode",
+    "splatScale": "scale",
+    "splatSeed": "seed",
+    "splatSpeed": "speed",
+    "useSplats": "enabled"
+  },
+  "globals": {
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "enabled"
+    },
+    "mode": {
+      "type": "int",
+      "default": 2,
+      "uniform": "mode",
+      "choices": {
+        "color": 0,
+        "displace": 1,
+        "invert": 2,
+        "negative": 3
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 3,
+      "uniform": "scale",
+      "min": 1,
+      "max": 5
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "color": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "color"
+    },
+    "cutoff": {
+      "type": "float",
+      "default": 25,
+      "uniform": "cutoff",
+      "min": 0,
+      "max": 100
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5
+    },
+    "useSpecks": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "useSpecks"
+    },
+    "speckMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speckMode",
+      "choices": {
+        "color": 0,
+        "displace": 1,
+        "invert": 2,
+        "negative": 3
+      }
+    },
+    "speckScale": {
+      "type": "float",
+      "default": 5,
+      "uniform": "speckScale",
+      "min": 1,
+      "max": 5
+    },
+    "speckSeed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speckSeed",
+      "min": 1,
+      "max": 100
+    },
+    "speckColor": {
+      "type": "color",
+      "default": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "uniform": "speckColor"
+    },
+    "speckCutoff": {
+      "type": "float",
+      "default": 70,
+      "uniform": "speckCutoff",
+      "min": 0,
+      "max": 100
+    },
+    "speckSpeed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speckSpeed",
+      "min": 0,
+      "max": 5
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "splat",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "splatColor": "color"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

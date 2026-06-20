@@ -1,0 +1,76 @@
+{
+  "name": "UvRemap",
+  "namespace": "mixer",
+  "func": "uvRemap",
+  "starter": false,
+  "tags": [
+    "blend",
+    "distortion"
+  ],
+  "description": "Remap UVs of one input using color channels of another",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "mapSource": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mapSource",
+      "choices": {
+        "sourceA": 0,
+        "sourceB": 1
+      }
+    },
+    "channel": {
+      "type": "int",
+      "default": 0,
+      "uniform": "channel",
+      "choices": {
+        "redGreen": 0,
+        "redBlue": 1,
+        "greenBlue": 2
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 100,
+      "uniform": "scale",
+      "min": 0,
+      "max": 200
+    },
+    "offset": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offset",
+      "min": -1,
+      "max": 1
+    },
+    "wrap": {
+      "type": "int",
+      "default": 1,
+      "uniform": "wrap",
+      "choices": {
+        "clamp": 0,
+        "mirror": 1,
+        "repeat": 2
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "uvRemap",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search mixer, synth\n\npattern()\n.write(o0)\n\nnoise(ridges: true)\n.uvRemap(tex: read(o0), scale: 25)\n.write(o1)"
+}

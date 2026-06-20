@@ -1,0 +1,102 @@
+# Porting Guide — reference GLSL → TouchDesigner GLSL TOP
+
+How an effect's reference shader becomes a TouchDesigner GLSL TOP program. Most of this is
+automated by `tools/convert-shaders.mjs`; this document is the rulebook it implements and the
+manual procedure for the cases it flags.
+
+## Why GLSL → GLSL (not WGSL)
+
+The reference ships both GLSL-ES-300 (`effects/<ns>/<name>/glsl/*.glsl`, the WebGL2 backend) and
+WGSL. The HLSL and Godot ports translate from **WGSL** because their targets (D3D / Vulkan) have
+top-left raster origins and non-GLSL syntax. **TouchDesigner's GLSL TOP is OpenGL GLSL with the
+same bottom-left origin as WebGL2**, so the reference GLSL is the closest possible source and the
+transform is purely structural — no math edits, no Y-flip. Source of truth for the TD port is the
+reference **GLSL**; consult the WGSL only when a `.glsl` is missing.
+
+## The automated transform (`convert-shaders.mjs`)
+
+For each `effects/<ns>/<name>/glsl/<prog>.glsl` → `td/noisemaker/shaders/effects/<ns>/<name>/<prog>.frag`:
+
+1. **Strip the header.** Remove `#version …`, standalone `precision …`, and `#ifdef GL_ES … #endif`
+   guards that only wrap precision. TouchDesigner auto-prepends its own `#version` (4.60) and a
+   preamble that declares `sTD2DInputs[]`, `vUV`, `uTD2DInfos[]`, `uTDOutputInfo`, `TDOutputSwizzle`,
+   etc. — emitting your own `#version` is an error.
+
+2. **Inputs → `sTD2DInputs`.** Drop every `uniform sampler2D <name>;` and emit, in declaration order,
+   `#define <name> sTD2DInputs[i]`. A machine-readable header `// NM_INPUTS: <name>=i …` records the
+   order; the network builder (`td_backend.py`) wires TOP inputs to match it. So `texture(inputTex, uv)`
+   and `textureSize(inputTex,0)` keep working verbatim. (`blendMode`: `inputTex=0 tex=1`.) Effects with
+   >3 inputs build on the **GLSL Multi TOP**, which lifts the 3-input cap.
+
+3. **Output → `TDOutputSwizzle`.** A single `out vec4 <name>;` (almost always `fragColor`) is kept;
+   the effect's `main` is renamed `nm_main`, and a wrapper is appended:
+   ```glsl
+   void main() { nm_main(); fragColor = TDOutputSwizzle(fragColor); }
+   ```
+   so the swizzle is applied exactly once, regardless of how the body writes the output (early
+   `return`s included). The `// NM_OUTPUT:` header records the output name.
+
+4. **Everything else verbatim.** Uniforms, helpers (PCG/prng/map/…), `gl_FragCoord`, all math, and the
+   `#ifndef X #define X default #endif` compile-time fallbacks are preserved unchanged.
+
+5. **Define overrides are NOT baked.** Per-pass compile-time defines (`NOISE_TYPE`, `LOOP_OFFSET`, …)
+   are injected by the builder at network-build time as `#define` lines **above** the source; the
+   `#ifndef` fallbacks defer to them. This matches the reference `injectDefines` exactly.
+
+Result: **226 of 247 programs** convert cleanly. The 21 flagged are all MRT (below).
+
+## Y-origin
+
+Default: **no flip.** TD GLSL TOP and the reference WebGL2 backend are both OpenGL bottom-left
+(reference/04 §3 PARITY HAZARD: WebGL2 textures are bottom-left; only WGSL/D3D ports flip). The
+transpiler emits `gl_FragCoord` verbatim. **Verify at bring-up** (Task 2.2) with a `vUV.t` gradient
+and the `gradient` effect; if a mismatch appears, regenerate with `convert-shaders.mjs --flip-y`,
+which routes `gl_FragCoord` through an `nm_FragCoord` that flips Y about `uTDOutputInfo.res.w` — the
+single control point (the analog of the HLSL port's one flip at `NMBlit`).
+
+## Manual procedure — MRT programs (the 21 flagged)
+
+Multi-output shaders (`points/*/agent` 3-buffer state, `render/*/render3d` `fragColor+geoOut`,
+`synth3d/*/precompute`, `filter3d/flow3d`) are emitted verbatim with a `// NM_OUTPUT: MRT …` header
+and need hand-finishing:
+
+1. Declare outputs with explicit locations: `layout(location = N) out vec4 <name>;`.
+2. Apply `TDOutputSwizzle` per output (or none, for non-color state buffers — raw float state must
+   NOT be swizzled).
+3. In `td_backend`, set the GLSL TOP's color-buffer count and add a **Render Select TOP** per extra
+   buffer so downstream passes can read buffers 1..N.
+4. `points` scatter passes additionally need a Geometry COMP + GLSL MAT + Render TOP (Phase 5.5);
+   the GLSL TOP is fragment-only.
+
+## Uniform contract
+
+Effects declare uniforms by name (`uniform float scaleX; uniform int seed; uniform vec2 resolution;`).
+The builder feeds them via the GLSL TOP **Vectors** page (`vecNname`/`vecNvaluex/y/z/w`) from Python
+(`uniform_binder.py`):
+- **Engine globals** (reference/04 §10.1) bound first: `time`, `resolution`, `tileOffset`,
+  `fullResolution`, `aspectRatio`, `renderScale`. TD has no built-in time → we supply `time`
+  (normalized 0..1) ourselves.
+- **Effect uniforms** from `pass.uniforms` bound next.
+- Packing: `float`→1 component, `vec2/3/4`/color→N, `bool`→`1.0/0.0`, `int`→`float`.
+
+**Two bring-up confirmations** (localized to `uniform_binder.py` if they need changing):
+- **Slot count** — `noise` needs ~13 uniforms. If the Vectors page exposes fewer slots, switch to an
+  Arrays-page "Uniform Array" fed by a Constant CHOP.
+- **uniform typing** — if TD won't bind a float Vectors slot to a `uniform int`/`uniform bool`, add a
+  transpiler pass emitting those declarations as `float` with in-shader casts.
+
+## Parity hazards (adapted from reference/07, /08)
+
+| Hazard | Status on the TD port |
+|---|---|
+| Y-origin / raster flip (reference/04 §3) | **MOOT by default** — TD == WebGL2 (OpenGL bottom-left). One-switch contingency via `--flip-y`. |
+| PCG bit-exactness (`pcg`, divisor `4294967295.0`) | **Preserved verbatim** — same GLSL `uvec3`/bit-ops; no `asuint`↔`floatBitsToUint` translation needed (unlike HLSL). |
+| `floatBitsToUint` / bitcasts | **N/A** — reference GLSL already uses GLSL bitcasts; copied as-is. |
+| Modulo sign (`mod`, `nm_positiveModulo`) | **Preserved verbatim** — GLSL `mod` semantics identical to the reference. |
+| int/bool uniform packing | **Open** — see "uniform typing" above; verify at Task 2.4. |
+| Coordinate convention (`globalCoord = gl_FragCoord.xy + tileOffset`, `st = …/fullResolution.y`) | Preserved verbatim; depends only on the Y-origin check. |
+| Texture format / sRGB | Linear only (`rgba16f`→16-bit float RGBA, never sRGB), set per-TOP by the builder. |
+| Cross-device float (MoltenVK/Metal vs ANGLE) | Inherent; absorbed by the SSIM≥0.98 / max-diff≤2 tolerance, same as the sibling ports. |
+
+The GLSL→GLSL same-origin path makes the two biggest cross-backend hazards (Y-flip, bitcast
+translation) **moot** — the main reason most of this port is mechanical.

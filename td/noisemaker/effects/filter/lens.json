@@ -1,0 +1,45 @@
+{
+  "name": "Lens",
+  "namespace": "filter",
+  "func": "lens",
+  "starter": false,
+  "tags": [
+    "distort",
+    "lens"
+  ],
+  "description": "Barrel or pincushion lens distortion",
+  "paramAliases": {},
+  "globals": {
+    "displacement": {
+      "type": "float",
+      "default": 0,
+      "uniform": "lensDisplacement",
+      "min": -1,
+      "max": 1
+    },
+    "aspectLens": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "aspectLens"
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "lens",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\ntestPattern(gridSize: 8)\n.lens(displacement: 0.5)\n.write(o0)"
+}

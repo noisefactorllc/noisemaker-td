@@ -1,0 +1,37 @@
+{
+  "name": "Simple Aberration",
+  "namespace": "filter",
+  "func": "simpleAberration",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Chromatic aberration",
+  "paramAliases": {},
+  "globals": {
+    "displacement": {
+      "type": "float",
+      "default": 0.02,
+      "uniform": "displacement",
+      "min": 0,
+      "max": 0.1
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "chromaticAberration",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "displacement": "displacement"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search filter, synth\n\nnoise(ridges: true, colorMode: mono)\n.simpleAberration()\n.write(o0)"
+}

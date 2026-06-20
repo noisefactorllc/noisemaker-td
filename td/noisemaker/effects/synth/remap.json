@@ -1,0 +1,857 @@
+{
+  "name": "Remap",
+  "namespace": "synth",
+  "func": "remap",
+  "starter": true,
+  "tags": [
+    "geometric",
+    "blend"
+  ],
+  "description": "Polygon zones routed to engine surfaces (companion to the Remap zone-editor app)",
+  "paramAliases": {},
+  "globals": {
+    "zoneCount": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zoneCount",
+      "min": 0,
+      "max": 8
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "bgColor"
+    },
+    "bgAlpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "bgAlpha",
+      "min": 0,
+      "max": 1
+    },
+    "smoothEdge": {
+      "type": "float",
+      "default": 0.04,
+      "uniform": "smoothEdge",
+      "min": 0,
+      "max": 1
+    },
+    "zone0_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone0_active"
+    },
+    "zone0_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone0_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone0_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone0_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone0_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v0"
+    },
+    "zone0_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v1"
+    },
+    "zone0_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v2"
+    },
+    "zone0_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v3"
+    },
+    "zone0_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v4"
+    },
+    "zone0_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v5"
+    },
+    "zone0_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v6"
+    },
+    "zone0_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone0_v7"
+    },
+    "zone1_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone1_active"
+    },
+    "zone1_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone1_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone1_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone1_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone1_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v0"
+    },
+    "zone1_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v1"
+    },
+    "zone1_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v2"
+    },
+    "zone1_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v3"
+    },
+    "zone1_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v4"
+    },
+    "zone1_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v5"
+    },
+    "zone1_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v6"
+    },
+    "zone1_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone1_v7"
+    },
+    "zone2_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone2_active"
+    },
+    "zone2_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone2_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone2_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone2_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone2_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v0"
+    },
+    "zone2_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v1"
+    },
+    "zone2_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v2"
+    },
+    "zone2_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v3"
+    },
+    "zone2_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v4"
+    },
+    "zone2_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v5"
+    },
+    "zone2_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v6"
+    },
+    "zone2_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone2_v7"
+    },
+    "zone3_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone3_active"
+    },
+    "zone3_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone3_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone3_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone3_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone3_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v0"
+    },
+    "zone3_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v1"
+    },
+    "zone3_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v2"
+    },
+    "zone3_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v3"
+    },
+    "zone3_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v4"
+    },
+    "zone3_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v5"
+    },
+    "zone3_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v6"
+    },
+    "zone3_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone3_v7"
+    },
+    "zone4_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone4_active"
+    },
+    "zone4_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone4_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone4_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone4_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone4_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v0"
+    },
+    "zone4_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v1"
+    },
+    "zone4_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v2"
+    },
+    "zone4_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v3"
+    },
+    "zone4_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v4"
+    },
+    "zone4_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v5"
+    },
+    "zone4_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v6"
+    },
+    "zone4_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone4_v7"
+    },
+    "zone5_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone5_active"
+    },
+    "zone5_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone5_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone5_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone5_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone5_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v0"
+    },
+    "zone5_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v1"
+    },
+    "zone5_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v2"
+    },
+    "zone5_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v3"
+    },
+    "zone5_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v4"
+    },
+    "zone5_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v5"
+    },
+    "zone5_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v6"
+    },
+    "zone5_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone5_v7"
+    },
+    "zone6_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone6_active"
+    },
+    "zone6_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone6_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone6_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone6_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone6_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v0"
+    },
+    "zone6_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v1"
+    },
+    "zone6_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v2"
+    },
+    "zone6_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v3"
+    },
+    "zone6_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v4"
+    },
+    "zone6_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v5"
+    },
+    "zone6_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v6"
+    },
+    "zone6_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone6_v7"
+    },
+    "zone7_tex": {
+      "type": "surface",
+      "default": "none",
+      "colorModeUniform": "zone7_active"
+    },
+    "zone7_count": {
+      "type": "int",
+      "default": 0,
+      "uniform": "zone7_count",
+      "min": 0,
+      "max": 16
+    },
+    "zone7_alpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "zone7_alpha",
+      "min": 0,
+      "max": 1
+    },
+    "zone7_v0": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v0"
+    },
+    "zone7_v1": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v1"
+    },
+    "zone7_v2": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v2"
+    },
+    "zone7_v3": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v3"
+    },
+    "zone7_v4": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v4"
+    },
+    "zone7_v5": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v5"
+    },
+    "zone7_v6": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v6"
+    },
+    "zone7_v7": {
+      "type": "vec4",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "uniform": "zone7_v7"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "remap",
+      "inputs": {
+        "zone0_tex": "zone0_tex",
+        "zone1_tex": "zone1_tex",
+        "zone2_tex": "zone2_tex",
+        "zone3_tex": "zone3_tex",
+        "zone4_tex": "zone4_tex",
+        "zone5_tex": "zone5_tex",
+        "zone6_tex": "zone6_tex",
+        "zone7_tex": "zone7_tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search synth\n\nremap(bgColor: #336699, bgAlpha: 1)\n  .write(o0)"
+}

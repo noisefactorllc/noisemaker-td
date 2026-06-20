@@ -1,0 +1,72 @@
+{
+  "name": "Hydraulic",
+  "namespace": "points",
+  "func": "hydraulic",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Hydraulic erosion flow simulation (gradient descent)",
+  "paramAliases": {},
+  "globals": {
+    "stride": {
+      "type": "float",
+      "default": 10,
+      "uniform": "stride",
+      "min": 1,
+      "max": 1000
+    },
+    "quantize": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "quantize"
+    },
+    "inverse": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "inverse"
+    },
+    "inputWeight": {
+      "type": "float",
+      "default": 100,
+      "uniform": "inputWeight",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "stride": "stride",
+        "quantize": "quantize",
+        "inverse": "inverse",
+        "inputWeight": "inputWeight"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

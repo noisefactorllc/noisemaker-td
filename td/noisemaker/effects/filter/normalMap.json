@@ -1,0 +1,25 @@
+{
+  "name": "Normal Map",
+  "namespace": "filter",
+  "func": "normalMap",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Normal map generation",
+  "paramAliases": {},
+  "globals": {},
+  "passes": [
+    {
+      "name": "main",
+      "program": "normalMap",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

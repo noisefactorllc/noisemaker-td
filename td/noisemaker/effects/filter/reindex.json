@@ -1,0 +1,66 @@
+{
+  "name": "Reindex",
+  "namespace": "filter",
+  "func": "reindex",
+  "starter": false,
+  "tags": [
+    "color"
+  ],
+  "description": "Palette reindexing",
+  "paramAliases": {},
+  "globals": {
+    "displacement": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "uDisplacement",
+      "min": 0,
+      "max": 2
+    }
+  },
+  "passes": [
+    {
+      "name": "stats",
+      "program": "nmReindexStats",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "statsTiles"
+      }
+    },
+    {
+      "name": "reduce",
+      "program": "nmReindexReduce",
+      "inputs": {
+        "statsTex": "statsTiles"
+      },
+      "outputs": {
+        "fragColor": "global_stats"
+      }
+    },
+    {
+      "name": "apply",
+      "program": "nmReindexApply",
+      "inputs": {
+        "inputTex": "inputTex",
+        "statsTex": "global_stats"
+      },
+      "uniforms": {
+        "uDisplacement": "displacement"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "statsTiles": {
+      "format": "rgba16f"
+    },
+    "global_stats": {
+      "width": 1,
+      "height": 1,
+      "format": "rgba16f"
+    }
+  }
+}

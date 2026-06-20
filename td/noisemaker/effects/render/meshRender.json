@@ -1,0 +1,242 @@
+{
+  "name": "Mesh Render",
+  "namespace": "render",
+  "func": "meshRender",
+  "starter": false,
+  "tags": [
+    "mesh",
+    "geometry"
+  ],
+  "description": "Render meshes with Blinn-Phong lighting",
+  "paramAliases": {},
+  "globals": {
+    "scale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "meshScale",
+      "min": 0.01,
+      "max": 10
+    },
+    "offsetX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetX",
+      "min": -5,
+      "max": 5
+    },
+    "offsetY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetY",
+      "min": -5,
+      "max": 5
+    },
+    "offsetZ": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetZ",
+      "min": -5,
+      "max": 5
+    },
+    "rotateX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateX",
+      "min": -180,
+      "max": 180
+    },
+    "rotateY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateY",
+      "min": -180,
+      "max": 180
+    },
+    "rotateZ": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateZ",
+      "min": -180,
+      "max": 180
+    },
+    "viewScale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "viewScale",
+      "min": 0.1,
+      "max": 10
+    },
+    "posX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "posX",
+      "min": -10,
+      "max": 10
+    },
+    "posY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "posY",
+      "min": -10,
+      "max": 10
+    },
+    "lightDirection": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.7,
+        0.5
+      ],
+      "uniform": "lightDirection"
+    },
+    "diffuseColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "diffuseColor"
+    },
+    "diffuseIntensity": {
+      "type": "float",
+      "default": 0.7,
+      "uniform": "diffuseIntensity",
+      "min": 0,
+      "max": 2
+    },
+    "specularColor": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "specularColor"
+    },
+    "specularIntensity": {
+      "type": "float",
+      "default": 0.3,
+      "uniform": "specularIntensity",
+      "min": 0,
+      "max": 2
+    },
+    "shininess": {
+      "type": "float",
+      "default": 32,
+      "uniform": "shininess",
+      "min": 1,
+      "max": 256
+    },
+    "ambientColor": {
+      "type": "color",
+      "default": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "uniform": "ambientColor"
+    },
+    "rimIntensity": {
+      "type": "float",
+      "default": 0.15,
+      "uniform": "rimIntensity",
+      "min": 0,
+      "max": 1
+    },
+    "rimPower": {
+      "type": "float",
+      "default": 3,
+      "uniform": "rimPower",
+      "min": 0.5,
+      "max": 8
+    },
+    "meshColor": {
+      "type": "color",
+      "default": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "uniform": "meshColor"
+    },
+    "bgColor": {
+      "type": "color",
+      "default": [
+        0.1,
+        0.1,
+        0.15
+      ],
+      "uniform": "bgColor"
+    },
+    "bgAlpha": {
+      "type": "float",
+      "default": 1,
+      "uniform": "bgAlpha",
+      "min": 0,
+      "max": 1
+    },
+    "wireframe": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wireframe",
+      "choices": {
+        "solid": 0,
+        "wireframe": 1
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "clear",
+      "program": "clear",
+      "inputs": {},
+      "uniforms": {
+        "bgColor": "bgColor",
+        "bgAlpha": "bgAlpha"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    },
+    {
+      "name": "render",
+      "program": "render",
+      "inputs": {
+        "inputTex": "inputTex",
+        "meshPositions": "global_mesh0_positions",
+        "meshNormals": "global_mesh0_normals"
+      },
+      "uniforms": {
+        "meshScale": "meshScale",
+        "meshOffsetX": "offsetX",
+        "meshOffsetY": "offsetY",
+        "meshOffsetZ": "offsetZ",
+        "rotateX": "rotateX",
+        "rotateY": "rotateY",
+        "rotateZ": "rotateZ",
+        "viewScale": "viewScale",
+        "posX": "posX",
+        "posY": "posY",
+        "lightDirection": "lightDirection",
+        "diffuseColor": "diffuseColor",
+        "diffuseIntensity": "diffuseIntensity",
+        "specularColor": "specularColor",
+        "specularIntensity": "specularIntensity",
+        "shininess": "shininess",
+        "ambientColor": "ambientColor",
+        "rimIntensity": "rimIntensity",
+        "rimPower": "rimPower",
+        "meshColor": "meshColor",
+        "wireframe": "wireframe"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      },
+      "drawMode": "triangles",
+      "count": "input",
+      "blend": false
+    }
+  ],
+  "textures": {}
+}

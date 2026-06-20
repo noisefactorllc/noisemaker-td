@@ -1,0 +1,107 @@
+{
+  "name": "Subdivide",
+  "namespace": "synth",
+  "func": "subdivide",
+  "starter": true,
+  "tags": [
+    "geometric",
+    "pattern"
+  ],
+  "description": "Recursive grid subdivision with shapes",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "choices": {
+        "binary": 0,
+        "quad": 1
+      }
+    },
+    "depth": {
+      "type": "int",
+      "default": 5,
+      "uniform": "depth",
+      "min": 1,
+      "max": 6
+    },
+    "density": {
+      "type": "float",
+      "default": 75,
+      "uniform": "density",
+      "min": 30,
+      "max": 100
+    },
+    "seed": {
+      "type": "int",
+      "default": 69,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    },
+    "fill": {
+      "type": "int",
+      "default": 0,
+      "uniform": "fill",
+      "choices": {
+        "solid": 0,
+        "circle": 1,
+        "diamond": 2,
+        "square": 3,
+        "arc": 4,
+        "mixed": 5
+      }
+    },
+    "outline": {
+      "type": "float",
+      "default": 3,
+      "uniform": "outline",
+      "min": 0,
+      "max": 10,
+      "zero": 0
+    },
+    "inputMix": {
+      "type": "float",
+      "default": 0,
+      "uniform": "inputMix",
+      "min": 0,
+      "max": 100
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 20,
+      "zero": 0
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "subdivide",
+      "inputs": {
+        "inputTex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

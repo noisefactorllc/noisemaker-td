@@ -1,0 +1,39 @@
+{
+  "name": "Step",
+  "namespace": "filter",
+  "func": "step",
+  "starter": false,
+  "tags": [
+    "edges",
+    "util"
+  ],
+  "description": "Hard threshold at specified value",
+  "paramAliases": {},
+  "globals": {
+    "threshold": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 1
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "step",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

@@ -1,0 +1,78 @@
+{
+  "name": "Tile",
+  "namespace": "filter",
+  "func": "tile",
+  "starter": false,
+  "tags": [
+    "tiling",
+    "transform"
+  ],
+  "description": "Symmetry-based kaleidoscope tiler",
+  "paramAliases": {},
+  "globals": {
+    "symmetry": {
+      "type": "int",
+      "default": 0,
+      "uniform": "symmetry",
+      "choices": {
+        "mirrorXY": 0,
+        "rotate2": 1,
+        "rotate4": 2,
+        "rotate6": 3
+      }
+    },
+    "scale": {
+      "type": "float",
+      "default": 1,
+      "uniform": "scale",
+      "min": 0.1,
+      "max": 4
+    },
+    "offsetX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetX",
+      "min": -1,
+      "max": 1
+    },
+    "offsetY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "offsetY",
+      "min": -1,
+      "max": 1
+    },
+    "angle": {
+      "type": "float",
+      "default": 0,
+      "uniform": "angle",
+      "min": 0,
+      "max": 360
+    },
+    "repeat": {
+      "type": "float",
+      "default": 2,
+      "uniform": "repeat",
+      "min": 1,
+      "max": 10
+    },
+    "aspectLens": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "aspectLens"
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "tile",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

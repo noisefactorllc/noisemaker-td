@@ -1,0 +1,237 @@
+{
+  "name": "Flow3D",
+  "namespace": "filter3d",
+  "func": "flow3d",
+  "starter": false,
+  "tags": [
+    "3d",
+    "sim"
+  ],
+  "description": "3D agent-based flow field",
+  "paramAliases": {},
+  "globals": {
+    "volumeSize": {
+      "type": "int",
+      "default": 32,
+      "uniform": "volumeSize",
+      "choices": {
+        "x16": 16,
+        "x32": 32,
+        "x64": 64,
+        "x128": 128
+      }
+    },
+    "behavior": {
+      "type": "int",
+      "default": 1,
+      "define": "BEHAVIOR",
+      "choices": {
+        "none": 0,
+        "obedient": 1,
+        "crosshatch": 2,
+        "unruly": 3,
+        "chaotic": 4,
+        "randomMix": 5,
+        "meandering": 10
+      }
+    },
+    "density": {
+      "type": "float",
+      "default": 20,
+      "uniform": "density",
+      "min": 1,
+      "max": 100
+    },
+    "stride": {
+      "type": "float",
+      "default": 1,
+      "uniform": "stride",
+      "min": 0.1,
+      "max": 10
+    },
+    "strideDeviation": {
+      "type": "float",
+      "default": 0.05,
+      "uniform": "strideDeviation",
+      "min": 0,
+      "max": 0.5
+    },
+    "kink": {
+      "type": "float",
+      "default": 1,
+      "uniform": "kink",
+      "min": 0,
+      "max": 10
+    },
+    "intensity": {
+      "type": "float",
+      "default": 90,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 100
+    },
+    "inputIntensity": {
+      "type": "float",
+      "default": 50,
+      "uniform": "inputIntensity",
+      "min": 0,
+      "max": 100
+    },
+    "lifetime": {
+      "type": "float",
+      "default": 30,
+      "uniform": "lifetime",
+      "min": 0,
+      "max": 60
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "stateTex1": "global_flow3d_state1",
+        "stateTex2": "global_flow3d_state2",
+        "stateTex3": "global_flow3d_state3",
+        "mixerTex": "inputTex3d",
+        "inputGeoTex": "inputGeo"
+      },
+      "uniforms": {
+        "density": "density",
+        "stride": "stride",
+        "strideDeviation": "strideDeviation",
+        "kink": "kink",
+        "lifetime": "lifetime",
+        "volumeSize": "volumeSize"
+      },
+      "outputs": {
+        "outState1": "global_flow3d_state1",
+        "outState2": "global_flow3d_state2",
+        "outState3": "global_flow3d_state3"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "diffuse",
+      "program": "diffuse",
+      "inputs": {
+        "sourceTex": "global_flow3d_trail"
+      },
+      "uniforms": {
+        "intensity": "intensity"
+      },
+      "outputs": {
+        "fragColor": "global_flow3d_trail"
+      }
+    },
+    {
+      "name": "copy",
+      "program": "copy",
+      "inputs": {
+        "sourceTex": "global_flow3d_trail"
+      },
+      "outputs": {
+        "fragColor": "global_flow3d_trail"
+      }
+    },
+    {
+      "name": "deposit",
+      "program": "deposit",
+      "inputs": {
+        "stateTex1": "global_flow3d_state1",
+        "stateTex2": "global_flow3d_state2"
+      },
+      "uniforms": {
+        "density": "density",
+        "volumeSize": "volumeSize"
+      },
+      "outputs": {
+        "fragColor": "global_flow3d_trail"
+      },
+      "drawMode": "points",
+      "count": 262144,
+      "blend": true
+    },
+    {
+      "name": "blend",
+      "program": "blend",
+      "inputs": {
+        "mixerTex": "inputTex3d",
+        "trailTex": "global_flow3d_trail"
+      },
+      "uniforms": {
+        "inputIntensity": "inputIntensity"
+      },
+      "outputs": {
+        "fragColor": "global_flow3d_blended"
+      }
+    }
+  ],
+  "textures": {
+    "volumeCache": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "geoBuffer": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "global_flow3d_state1": {
+      "width": 512,
+      "height": 512,
+      "format": "rgba16f"
+    },
+    "global_flow3d_state2": {
+      "width": 512,
+      "height": 512,
+      "format": "rgba16f"
+    },
+    "global_flow3d_state3": {
+      "width": 512,
+      "height": 512,
+      "format": "rgba16f"
+    },
+    "global_flow3d_trail": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    },
+    "global_flow3d_blended": {
+      "width": {
+        "param": "volumeSize",
+        "default": 32
+      },
+      "height": {
+        "param": "volumeSize",
+        "power": 2,
+        "default": 1024
+      },
+      "format": "rgba16f"
+    }
+  },
+  "outputTex3d": "global_flow3d_blended",
+  "outputGeo": "geoBuffer"
+}

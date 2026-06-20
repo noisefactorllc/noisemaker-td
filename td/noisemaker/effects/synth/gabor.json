@@ -1,0 +1,81 @@
+{
+  "name": "Gabor",
+  "namespace": "synth",
+  "func": "gabor",
+  "starter": true,
+  "tags": [
+    "noise"
+  ],
+  "description": "Anisotropic bandlimited noise via sparse Gabor convolution",
+  "paramAliases": {},
+  "globals": {
+    "scale": {
+      "type": "float",
+      "default": 75,
+      "uniform": "scale",
+      "min": 1,
+      "max": 100
+    },
+    "orientation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "orientation",
+      "min": -180,
+      "max": 180
+    },
+    "bandwidth": {
+      "type": "float",
+      "default": 75,
+      "uniform": "bandwidth",
+      "min": 1,
+      "max": 100
+    },
+    "isotropy": {
+      "type": "float",
+      "default": 0,
+      "uniform": "isotropy",
+      "min": 0,
+      "max": 100
+    },
+    "density": {
+      "type": "int",
+      "default": 3,
+      "uniform": "density",
+      "min": 1,
+      "max": 8
+    },
+    "octaves": {
+      "type": "int",
+      "default": 1,
+      "uniform": "octaves",
+      "min": 1,
+      "max": 5
+    },
+    "speed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "speed",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "seed": {
+      "type": "int",
+      "default": 1,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "gabor",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

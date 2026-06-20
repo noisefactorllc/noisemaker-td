@@ -1,0 +1,151 @@
+{
+  "name": "LensDistortion",
+  "namespace": "classicNoisedeck",
+  "func": "lensDistortion",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Lens distortion simulation",
+  "paramAliases": {
+    "aberrationAmt": "aberration",
+    "opacity": "alpha",
+    "loopAmp": "speed"
+  },
+  "globals": {
+    "shape": {
+      "type": "int",
+      "default": 0,
+      "uniform": "shape",
+      "choices": {
+        "circle": 0,
+        "cosine": 10,
+        "diamond": 1,
+        "hexagon": 2,
+        "octagon": 3,
+        "square": 4,
+        "triangle": 6
+      }
+    },
+    "distortion": {
+      "type": "float",
+      "default": 0,
+      "uniform": "distortion",
+      "min": -100,
+      "max": 100
+    },
+    "aspectLens": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "aspectLens"
+    },
+    "loopScale": {
+      "type": "float",
+      "default": 100,
+      "uniform": "loopScale",
+      "min": 1,
+      "max": 100
+    },
+    "speed": {
+      "type": "float",
+      "default": 0,
+      "uniform": "speed",
+      "min": -100,
+      "max": 100
+    },
+    "mode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "mode",
+      "choices": {
+        "chromaticRgb": 0,
+        "prismaticHsv": 1
+      }
+    },
+    "aberration": {
+      "type": "float",
+      "default": 50,
+      "uniform": "aberration",
+      "min": 0,
+      "max": 100
+    },
+    "blendMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "blendMode",
+      "choices": {
+        "add": 0,
+        "alpha": 1
+      }
+    },
+    "modulate": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "modulate"
+    },
+    "tint": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "tint"
+    },
+    "alpha": {
+      "type": "float",
+      "default": 0,
+      "uniform": "alpha",
+      "min": 0,
+      "max": 100
+    },
+    "hueRotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hueRotation",
+      "min": 0,
+      "max": 360
+    },
+    "hueRange": {
+      "type": "float",
+      "default": 0,
+      "uniform": "hueRange",
+      "min": 0,
+      "max": 100
+    },
+    "saturation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "saturation",
+      "min": -100,
+      "max": 100
+    },
+    "passthru": {
+      "type": "float",
+      "default": 50,
+      "uniform": "passthru",
+      "min": 0,
+      "max": 100
+    },
+    "vignetteAmt": {
+      "type": "float",
+      "default": 0,
+      "uniform": "vignetteAmt",
+      "min": -100,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "lensDistortion",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

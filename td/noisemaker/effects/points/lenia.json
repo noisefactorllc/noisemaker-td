@@ -1,0 +1,154 @@
+{
+  "name": "Lenia",
+  "namespace": "points",
+  "func": "lenia",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Particle Lenia artificial life simulation",
+  "paramAliases": {},
+  "globals": {
+    "muK": {
+      "type": "float",
+      "default": 25,
+      "uniform": "muK",
+      "min": 1,
+      "max": 30
+    },
+    "sigmaK": {
+      "type": "float",
+      "default": 5,
+      "uniform": "sigmaK",
+      "min": 0.1,
+      "max": 10
+    },
+    "muG": {
+      "type": "float",
+      "default": 0.25,
+      "uniform": "muG",
+      "min": 0.1,
+      "max": 2
+    },
+    "sigmaG": {
+      "type": "float",
+      "default": 0.15,
+      "uniform": "sigmaG",
+      "min": 0.01,
+      "max": 0.5
+    },
+    "repulsion": {
+      "type": "float",
+      "default": 0.5,
+      "uniform": "repulsion",
+      "min": 0,
+      "max": 5
+    },
+    "dt": {
+      "type": "float",
+      "default": 0.25,
+      "uniform": "dt",
+      "min": 0.01,
+      "max": 0.5
+    },
+    "searchRadius": {
+      "type": "float",
+      "default": 25,
+      "uniform": "searchRadius",
+      "min": 5,
+      "max": 40
+    },
+    "depositAmount": {
+      "type": "float",
+      "default": 3.6,
+      "uniform": "depositAmount",
+      "min": 0.1,
+      "max": 5
+    }
+  },
+  "passes": [
+    {
+      "name": "clear",
+      "program": "clear",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "global_lenia_density"
+      }
+    },
+    {
+      "name": "deposit",
+      "program": "deposit",
+      "inputs": {
+        "xyzTex": "global_xyz"
+      },
+      "uniforms": {
+        "depositAmount": "depositAmount"
+      },
+      "outputs": {
+        "fragColor": "global_lenia_density"
+      },
+      "drawMode": "points",
+      "count": "input",
+      "blend": true
+    },
+    {
+      "name": "convolve",
+      "program": "convolve",
+      "inputs": {
+        "densityTex": "global_lenia_density"
+      },
+      "uniforms": {
+        "muK": "muK",
+        "sigmaK": "sigmaK",
+        "searchRadius": "searchRadius"
+      },
+      "outputs": {
+        "fragColor": "global_lenia_field"
+      }
+    },
+    {
+      "name": "agent",
+      "program": "agentField",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "fieldTex": "global_lenia_field"
+      },
+      "uniforms": {
+        "muG": "muG",
+        "sigmaG": "sigmaG",
+        "repulsion": "repulsion",
+        "dt": "dt"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_lenia_density": {
+      "width": "50%",
+      "height": "50%",
+      "format": "rgba16f"
+    },
+    "global_lenia_field": {
+      "width": "50%",
+      "height": "50%",
+      "format": "rgba16f"
+    }
+  }
+}

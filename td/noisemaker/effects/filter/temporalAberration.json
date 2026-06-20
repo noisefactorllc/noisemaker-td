@@ -1,0 +1,178 @@
+{
+  "name": "Temporal Chromatic Aberration",
+  "namespace": "filter",
+  "func": "temporalAberration",
+  "starter": false,
+  "tags": [
+    "color",
+    "lens"
+  ],
+  "description": "Chromatic aberration via per-channel temporal frame delay",
+  "paramAliases": {},
+  "globals": {
+    "redDelay": {
+      "type": "float",
+      "default": 0,
+      "uniform": "redDelay",
+      "min": 0,
+      "max": 8
+    },
+    "greenDelay": {
+      "type": "float",
+      "default": 4,
+      "uniform": "greenDelay",
+      "min": 0,
+      "max": 8
+    },
+    "blueDelay": {
+      "type": "float",
+      "default": 8,
+      "uniform": "blueDelay",
+      "min": 0,
+      "max": 8
+    }
+  },
+  "passes": [
+    {
+      "name": "main",
+      "program": "temporalAberration",
+      "inputs": {
+        "inputTex": "inputTex",
+        "h1": "_h1",
+        "h2": "_h2",
+        "h3": "_h3",
+        "h4": "_h4",
+        "h5": "_h5",
+        "h6": "_h6",
+        "h7": "_h7",
+        "h8": "_h8"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    },
+    {
+      "name": "shift8",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h7"
+      },
+      "outputs": {
+        "fragColor": "_h8"
+      }
+    },
+    {
+      "name": "shift7",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h6"
+      },
+      "outputs": {
+        "fragColor": "_h7"
+      }
+    },
+    {
+      "name": "shift6",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h5"
+      },
+      "outputs": {
+        "fragColor": "_h6"
+      }
+    },
+    {
+      "name": "shift5",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h4"
+      },
+      "outputs": {
+        "fragColor": "_h5"
+      }
+    },
+    {
+      "name": "shift4",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h3"
+      },
+      "outputs": {
+        "fragColor": "_h4"
+      }
+    },
+    {
+      "name": "shift3",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h2"
+      },
+      "outputs": {
+        "fragColor": "_h3"
+      }
+    },
+    {
+      "name": "shift2",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "_h1"
+      },
+      "outputs": {
+        "fragColor": "_h2"
+      }
+    },
+    {
+      "name": "shift1",
+      "program": "delayShift",
+      "inputs": {
+        "srcTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_h1"
+      }
+    }
+  ],
+  "textures": {
+    "_h1": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h2": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h3": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h4": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h5": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h6": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h7": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    },
+    "_h8": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba8unorm"
+    }
+  },
+  "defaultProgram": "search filter, synth\n\nnoise(\n  speed: 40,\n  colorMode: mono,\n  ridges: true\n)\n  .temporalAberration()\n  .write(o0)"
+}

@@ -1,0 +1,103 @@
+{
+  "name": "Bloom",
+  "namespace": "filter",
+  "func": "bloom",
+  "starter": false,
+  "tags": [
+    "lens"
+  ],
+  "description": "Multi-pass bloom with bright-pass extraction and configurable glow",
+  "paramAliases": {},
+  "globals": {
+    "threshold": {
+      "type": "float",
+      "default": 0.8,
+      "uniform": "threshold",
+      "min": 0,
+      "max": 2
+    },
+    "softKnee": {
+      "type": "float",
+      "default": 0.2,
+      "uniform": "softKnee",
+      "min": 0,
+      "max": 0.5
+    },
+    "intensity": {
+      "type": "float",
+      "default": 1,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 3,
+      "zero": 0
+    },
+    "radius": {
+      "type": "float",
+      "default": 32,
+      "uniform": "radius",
+      "min": 1,
+      "max": 128
+    },
+    "taps": {
+      "type": "int",
+      "default": 8,
+      "uniform": "taps",
+      "min": 8,
+      "max": 64
+    },
+    "tint": {
+      "type": "color",
+      "default": [
+        1,
+        1,
+        1
+      ],
+      "uniform": "tint"
+    }
+  },
+  "passes": [
+    {
+      "name": "brightPass",
+      "program": "brightPass",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "_brightTex"
+      }
+    },
+    {
+      "name": "ntapGather",
+      "program": "ntapGather",
+      "inputs": {
+        "inputTex": "_brightTex"
+      },
+      "outputs": {
+        "fragColor": "_bloomTex"
+      }
+    },
+    {
+      "name": "composite",
+      "program": "composite",
+      "inputs": {
+        "inputTex": "inputTex",
+        "bloomTex": "_bloomTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "_brightTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    },
+    "_bloomTex": {
+      "width": "input",
+      "height": "input",
+      "format": "rgba16float"
+    }
+  }
+}

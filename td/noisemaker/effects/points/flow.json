@@ -1,0 +1,102 @@
+{
+  "name": "Flow",
+  "namespace": "points",
+  "func": "flow",
+  "starter": false,
+  "tags": [
+    "sim"
+  ],
+  "description": "Agent-based luminosity flow field with behaviors",
+  "paramAliases": {},
+  "globals": {
+    "stateSize": {
+      "type": "int",
+      "default": 256,
+      "uniform": "stateSize"
+    },
+    "behavior": {
+      "type": "int",
+      "default": 1,
+      "uniform": "behavior",
+      "choices": {
+        "none": 0,
+        "obedient": 1,
+        "crosshatch": 2,
+        "unruly": 3,
+        "chaotic": 4,
+        "randomMix": 5,
+        "meandering": 10
+      }
+    },
+    "stride": {
+      "type": "float",
+      "default": 10,
+      "uniform": "stride",
+      "min": 1,
+      "max": 1000
+    },
+    "strideDeviation": {
+      "type": "float",
+      "default": 0.05,
+      "uniform": "strideDeviation",
+      "min": 0,
+      "max": 0.5
+    },
+    "kink": {
+      "type": "float",
+      "default": 1,
+      "uniform": "kink",
+      "min": 0,
+      "max": 10
+    },
+    "quantize": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "quantize"
+    },
+    "inputWeight": {
+      "type": "float",
+      "default": 100,
+      "uniform": "inputWeight",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "agent",
+      "program": "agent",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "velTex": "global_vel",
+        "rgbaTex": "global_rgba",
+        "inputTex": "inputTex"
+      },
+      "uniforms": {
+        "behavior": "behavior",
+        "stride": "stride",
+        "strideDeviation": "strideDeviation",
+        "kink": "kink",
+        "quantize": "quantize",
+        "inputWeight": "inputWeight"
+      },
+      "outputs": {
+        "outXYZ": "global_xyz",
+        "outVel": "global_vel",
+        "outRGBA": "global_rgba"
+      },
+      "drawBuffers": 3
+    },
+    {
+      "name": "passthrough",
+      "program": "passthrough",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

@@ -1,0 +1,163 @@
+{
+  "name": "Points Render",
+  "namespace": "render",
+  "func": "pointsRender",
+  "starter": false,
+  "tags": [
+    "agents"
+  ],
+  "description": "Blend agent trails with input for particle systems",
+  "paramAliases": {},
+  "globals": {
+    "density": {
+      "type": "float",
+      "default": 50,
+      "uniform": "density",
+      "min": 0,
+      "max": 100
+    },
+    "intensity": {
+      "type": "float",
+      "default": 75,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 100
+    },
+    "inputIntensity": {
+      "type": "float",
+      "default": 10.15,
+      "uniform": "inputIntensity",
+      "min": 0,
+      "max": 100
+    },
+    "viewMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "viewMode",
+      "choices": {
+        "flat": 0,
+        "ortho": 1
+      }
+    },
+    "rotateX": {
+      "type": "float",
+      "default": 0.3,
+      "uniform": "rotateX",
+      "min": 0,
+      "max": 6.283185
+    },
+    "rotateY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateY",
+      "min": 0,
+      "max": 6.283185
+    },
+    "rotateZ": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotateZ",
+      "min": 0,
+      "max": 6.283185
+    },
+    "viewScale": {
+      "type": "float",
+      "default": 0.8,
+      "uniform": "viewScale",
+      "min": 0.1,
+      "max": 10
+    },
+    "posX": {
+      "type": "float",
+      "default": 0,
+      "uniform": "posX",
+      "min": -50,
+      "max": 50
+    },
+    "posY": {
+      "type": "float",
+      "default": 0,
+      "uniform": "posY",
+      "min": -50,
+      "max": 50
+    },
+    "matteOpacity": {
+      "type": "float",
+      "default": 1,
+      "uniform": "matteOpacity",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "diffuse",
+      "program": "diffuse",
+      "inputs": {
+        "trailTex": "global_points_trail"
+      },
+      "uniforms": {
+        "intensity": "intensity"
+      },
+      "outputs": {
+        "fragColor": "global_points_trail"
+      }
+    },
+    {
+      "name": "copy",
+      "program": "copy",
+      "inputs": {
+        "sourceTex": "global_points_trail"
+      },
+      "outputs": {
+        "fragColor": "global_points_trail"
+      }
+    },
+    {
+      "name": "deposit",
+      "program": "deposit",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "rgbaTex": "global_rgba"
+      },
+      "uniforms": {
+        "density": "density",
+        "viewMode": "viewMode",
+        "rotateX": "rotateX",
+        "rotateY": "rotateY",
+        "rotateZ": "rotateZ",
+        "viewScale": "viewScale",
+        "posX": "posX",
+        "posY": "posY"
+      },
+      "outputs": {
+        "fragColor": "global_points_trail"
+      },
+      "drawMode": "points",
+      "count": "input",
+      "blend": true
+    },
+    {
+      "name": "blend",
+      "program": "blend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "trailTex": "global_points_trail"
+      },
+      "uniforms": {
+        "inputIntensity": "inputIntensity",
+        "matteOpacity": "matteOpacity"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "global_points_trail": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "name": "Cel Shading",
+  "namespace": "filter",
+  "func": "celShading",
+  "starter": false,
+  "tags": [
+    "color",
+    "edges"
+  ],
+  "description": "Cartoon-style shading with posterization and outlines",
+  "paramAliases": {
+    "shadingStrength": "strength",
+    "mixAmount": "mix"
+  },
+  "globals": {
+    "mix": {
+      "type": "float",
+      "default": 1,
+      "uniform": "mixAmount",
+      "min": 0,
+      "max": 1,
+      "zero": 0
+    },
+    "levels": {
+      "type": "int",
+      "default": 4,
+      "uniform": "levels",
+      "min": 2,
+      "max": 8
+    },
+    "gamma": {
+      "type": "float",
+      "default": 0.65,
+      "uniform": "gamma",
+      "min": 0.1,
+      "max": 3,
+      "zero": 1
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "antialias"
+    },
+    "edgeWidth": {
+      "type": "int",
+      "default": 1,
+      "uniform": "edgeWidth",
+      "min": 0,
+      "max": 5,
+      "zero": 0
+    },
+    "edgeThreshold": {
+      "type": "float",
+      "default": 0.15,
+      "uniform": "edgeThreshold",
+      "min": 0.01,
+      "max": 1,
+      "zero": 0
+    },
+    "edgeColor": {
+      "type": "color",
+      "default": [
+        0,
+        0,
+        0
+      ],
+      "uniform": "edgeColor"
+    },
+    "lightDirection": {
+      "type": "vec3",
+      "default": [
+        0.5,
+        0.5,
+        1
+      ],
+      "uniform": "lightDirection"
+    },
+    "strength": {
+      "type": "float",
+      "default": 0,
+      "uniform": "strength",
+      "min": 0,
+      "max": 1
+    }
+  },
+  "passes": [
+    {
+      "name": "color",
+      "program": "celShadingColor",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "celShadingColorTex"
+      }
+    },
+    {
+      "name": "edges",
+      "program": "celShadingEdges",
+      "inputs": {
+        "colorTex": "celShadingColorTex"
+      },
+      "outputs": {
+        "fragColor": "celShadingEdgeTex"
+      }
+    },
+    {
+      "name": "blend",
+      "program": "celShadingBlend",
+      "inputs": {
+        "inputTex": "inputTex",
+        "colorTex": "celShadingColorTex",
+        "edgeTex": "celShadingEdgeTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {
+    "celShadingColorTex": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    },
+    "celShadingEdgeTex": {
+      "width": "100%",
+      "height": "100%",
+      "format": "rgba16f"
+    }
+  },
+  "defaultProgram": "search filter, synth\n\nnoise(octaves: 4, scaleX: 100, scaleY: 100, ridges: true)\n  .celShading()\n  .write(o0)"
+}

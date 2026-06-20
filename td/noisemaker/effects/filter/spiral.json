@@ -1,0 +1,68 @@
+{
+  "name": "Spiral",
+  "namespace": "filter",
+  "func": "spiral",
+  "starter": false,
+  "tags": [
+    "distort"
+  ],
+  "description": "Spiral distortion",
+  "paramAliases": {},
+  "globals": {
+    "strength": {
+      "type": "float",
+      "default": -100,
+      "uniform": "strength",
+      "min": -100,
+      "max": 100,
+      "zero": 0
+    },
+    "speed": {
+      "type": "int",
+      "default": 0,
+      "uniform": "speed",
+      "min": -5,
+      "max": 5
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "mirror": 0,
+        "repeat": 1,
+        "clamp": 2
+      }
+    },
+    "aspectLens": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "aspectLens"
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": true,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "spiral",
+      "inputs": {
+        "inputTex": "inputTex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}

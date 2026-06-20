@@ -1,0 +1,88 @@
+{
+  "name": "Distortion",
+  "namespace": "mixer",
+  "func": "distortion",
+  "starter": false,
+  "tags": [
+    "blend",
+    "distort"
+  ],
+  "description": "Displace, reflect, and refract with two surfaces",
+  "paramAliases": {},
+  "globals": {
+    "tex": {
+      "type": "surface",
+      "default": "none"
+    },
+    "mapSource": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mapSource",
+      "choices": {
+        "sourceA": 0,
+        "sourceB": 1
+      }
+    },
+    "mode": {
+      "type": "int",
+      "default": 1,
+      "uniform": "mode",
+      "choices": {
+        "displace": 0,
+        "refract": 1,
+        "reflect": 2
+      }
+    },
+    "intensity": {
+      "type": "float",
+      "default": 50,
+      "uniform": "intensity",
+      "min": 0,
+      "max": 100
+    },
+    "wrap": {
+      "type": "int",
+      "default": 0,
+      "uniform": "wrap",
+      "choices": {
+        "clamp": 2,
+        "mirror": 0,
+        "repeat": 1
+      }
+    },
+    "smoothing": {
+      "type": "float",
+      "default": 1,
+      "uniform": "smoothing",
+      "min": 1,
+      "max": 100
+    },
+    "aberration": {
+      "type": "float",
+      "default": 0,
+      "uniform": "aberration",
+      "min": 0,
+      "max": 25
+    },
+    "antialias": {
+      "type": "boolean",
+      "default": false,
+      "uniform": "antialias"
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "distortion",
+      "inputs": {
+        "inputTex": "inputTex",
+        "tex": "tex"
+      },
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {},
+  "defaultProgram": "search mixer, synth\n\ncell()\n.write(o0)\n\nnoise(ridges: true)\n.distortion(tex: read(o0))\n.write(o1)"
+}

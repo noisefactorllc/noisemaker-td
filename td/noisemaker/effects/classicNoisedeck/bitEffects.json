@@ -1,0 +1,168 @@
+{
+  "name": "BitEffects",
+  "namespace": "classicNoisedeck",
+  "func": "bitEffects",
+  "starter": true,
+  "tags": [
+    "geometric",
+    "pattern"
+  ],
+  "description": "Bit field and bit mask effects",
+  "paramAliases": {
+    "loopAmp": "speed"
+  },
+  "globals": {
+    "mode": {
+      "type": "int",
+      "default": 1,
+      "define": "MODE",
+      "choices": {
+        "bitField": 0,
+        "bitMask": 1
+      }
+    },
+    "speed": {
+      "type": "float",
+      "default": 50,
+      "uniform": "speed",
+      "min": 0,
+      "max": 100,
+      "zero": 0
+    },
+    "formula": {
+      "type": "int",
+      "default": 0,
+      "define": "FORMULA",
+      "choices": {
+        "alien": 0,
+        "sierpinski": 1
+      }
+    },
+    "n": {
+      "type": "int",
+      "default": 1,
+      "uniform": "n",
+      "min": 1,
+      "max": 200
+    },
+    "scale": {
+      "type": "float",
+      "default": 75,
+      "uniform": "scale",
+      "min": 1,
+      "max": 100
+    },
+    "rotation": {
+      "type": "float",
+      "default": 0,
+      "uniform": "rotation",
+      "min": -180,
+      "max": 180
+    },
+    "colorScheme": {
+      "type": "int",
+      "default": 20,
+      "define": "COLOR_SCHEME",
+      "choices": {
+        "blue": 0,
+        "cyan": 1,
+        "green": 2,
+        "magenta": 3,
+        "red": 4,
+        "white": 5,
+        "yellow": 6,
+        "blueAndGreen": 10,
+        "blueAndRed": 11,
+        "blueAndYellow": 12,
+        "greenAndMagenta": 13,
+        "greenAndRed": 14,
+        "redAndCyan": 15,
+        "redGreenAndBlue": 20
+      }
+    },
+    "interp": {
+      "type": "int",
+      "default": 0,
+      "define": "INTERP",
+      "choices": {
+        "constant": 0,
+        "linear": 1
+      }
+    },
+    "maskFormula": {
+      "type": "int",
+      "default": 10,
+      "define": "MASK_FORMULA",
+      "choices": {
+        "invaders": 10,
+        "wideInvaders": 11,
+        "glyphs": 20,
+        "areciboNumber": 30
+      }
+    },
+    "tiles": {
+      "type": "int",
+      "default": 5,
+      "uniform": "tiles",
+      "min": 1,
+      "max": 40
+    },
+    "complexity": {
+      "type": "float",
+      "default": 57,
+      "uniform": "complexity",
+      "min": 1,
+      "max": 100
+    },
+    "maskColorScheme": {
+      "type": "int",
+      "default": 1,
+      "define": "MASK_COLOR_SCHEME",
+      "choices": {
+        "blackWhite": 0,
+        "justHue": 3,
+        "hueSaturation": 2,
+        "hsv": 1
+      }
+    },
+    "baseHueRange": {
+      "type": "float",
+      "default": 50,
+      "uniform": "baseHueRange",
+      "min": 0,
+      "max": 100
+    },
+    "hueRotation": {
+      "type": "float",
+      "default": 180,
+      "uniform": "hueRotation",
+      "min": 0,
+      "max": 360
+    },
+    "hueRange": {
+      "type": "float",
+      "default": 25,
+      "uniform": "hueRange",
+      "min": 0,
+      "max": 100
+    },
+    "seed": {
+      "type": "int",
+      "default": 63,
+      "uniform": "seed",
+      "min": 1,
+      "max": 100
+    }
+  },
+  "passes": [
+    {
+      "name": "render",
+      "program": "bitEffects",
+      "inputs": {},
+      "outputs": {
+        "fragColor": "outputTex"
+      }
+    }
+  ],
+  "textures": {}
+}
