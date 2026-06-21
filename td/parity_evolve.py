@@ -208,10 +208,14 @@ def evolve_frame_end(frame):
                 a = out.numpyArray()           # HxWx4 float (TD: 0..1 for fixed, raw for float)
                 import numpy as _np
                 mag = _np.hypot(a[..., 0], a[..., 1])   # R,G = velocity for sim-state surfaces
-                stats = ' R[%.3f,%.3f] G[%.3f,%.3f] B.mean=%.3f velMag(max=%.3f mean=%.4f)' % (
+                al = a[..., 3]
+                nan = int(_np.isnan(a).sum())
+                stats = (' R[%.3f,%.3f] G[%.3f,%.3f] B.mean=%.3f A[%.3f,%.3f]mean=%.3f'
+                         ' velMag(max=%.3f mean=%.4f) nan=%d') % (
                     float(a[..., 0].min()), float(a[..., 0].max()),
                     float(a[..., 1].min()), float(a[..., 1].max()),
-                    float(a[..., 2].mean()), float(mag.max()), float(mag.mean()))
+                    float(a[..., 2].mean()), float(al.min()), float(al.max()), float(al.mean()),
+                    float(mag.max()), float(mag.mean()), nan)
             except Exception:
                 pass
             log('sample f%04d -> %s  (%dx%d)%s' % (

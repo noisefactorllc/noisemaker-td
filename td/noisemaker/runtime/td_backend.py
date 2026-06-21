@@ -102,6 +102,7 @@ class TDBackend:
         self._mrt_diag_done = False                 # one-time Render Select param introspection log
         self._tex_res = {}                          # texId -> (w,h) resolved (for feedback sizing)
         self.has_feedback = False                  # graph has a cross-frame cycle (drive N frames)
+        self._points_cam = None                    # shared dummy ortho Camera COMP for deposit renders
 
     # -- public ------------------------------------------------------------
     def build(self, graph):
@@ -112,8 +113,8 @@ class TDBackend:
         for p in graph.passes:
             if p.is_blit:
                 self._build_blit(p, graph)
-            elif p.is_points:
-                self._warn('points pass %s skipped (Phase 5.5: Geo COMP + GLSL MAT + Render TOP)' % p.id)
+            elif p.is_scatter:
+                self._build_points(p, graph)
             else:
                 # `repeat=N` is an intra-frame iterative solve (e.g. nsPressure Jacobi x40): each
                 # iteration reads the previous one's output. UNROLL into N chained TOPs — building
@@ -352,6 +353,159 @@ class TDBackend:
             if self.surfaces is not None:
                 self.surfaces.note_write(tex_id, n)
         return n
+
+    # -- points / billboards deposit (agent scatter) -----------------------
+    def _build_points(self, p, graph):
+        """drawMode points/billboards: agents SCATTER into the trail surface. TD has no bufferless
+        draw, so this is a Geo COMP (Grid SOP -> Convert "point sprites") + GLSL MAT + Render TOP
+        with additive blend, then accumulated onto the trail's prior (copy-pass) content. The MAT
+        recovers each agent's state texel from the Grid point position (validated by points_probe).
+        See docs/TD-PLATFORM-NOTES.md 'GPU point scatter'."""
+        from . import deposit_shaders
+        xyz_id = p.inputs.get('xyzTex')
+        rgba_id = p.inputs.get('rgbaTex')
+        xyz = self._resolve_read(xyz_id) if xyz_id else None
+        rgba = self._resolve_read(rgba_id) if rgba_id else None
+        if xyz is None or rgba is None:
+            self._warn('points %s: unresolved agent state (xyz=%s rgba=%s) — skipped' % (
+                p.id, xyz_id, rgba_id))
+            return
+        # stateSize = the agent grid width (xyz texture width).
+        ss = None
+        rw = self._tex_res.get(xyz_id)
+        if rw and rw[0]:
+            ss = int(rw[0])
+        if not ss:
+            try:
+                ss = int(xyz.par.resolutionw.eval())
+            except Exception:
+                ss = None
+        if not ss:
+            for k, v in p.uniforms.items():
+                if k.startswith('stateSize') and v:
+                    ss = int(v)
+                    break
+        if not ss:
+            self._warn('points %s: could not resolve stateSize — skipped' % p.id)
+            return
+
+        trail_id = p.outputs.get('fragColor') or next(iter(p.outputs.values()), None)
+        spec = graph.spec_for(trail_id)
+        if spec is not None:
+            tw = int(_dim.resolve_dimension(spec.width, self.width, p.uniforms))
+            th = int(_dim.resolve_dimension(spec.height, self.height, p.uniforms))
+            fmt = FORMAT_MAP.get(spec.fmt, 'rgba16float')
+        else:
+            tw, th, fmt = self.width, self.height, 'rgba16float'
+        prior = self.tex_top.get(trail_id)        # copy-pass output we accumulate onto (or None)
+
+        tag = self._unique_name(p.id)
+        # -- geometry: ss x ss grid -> point sprites (one GL_POINT per agent) --
+        geo = self.parent.create(_td('geometryCOMP'), tag + '_geo')
+        self.ops.append(geo)
+        for _c in list(geo.children):             # a fresh Geo COMP ships a default torus1 SOP
+            _try(lambda _c=_c: _c.destroy())
+        grid = geo.create(_td('gridSOP'), tag + '_grid')
+        for _p, _v in (('rows', ss), ('cols', ss), ('sizex', 2), ('sizey', 2), ('orient', 'xy')):
+            _try(lambda _p=_p, _v=_v: setattr(grid.par, _p, _v))
+        conv = geo.create(_td('convertSOP'), tag + '_conv')
+        conv.inputConnectors[0].connect(grid)
+        for _p, _v in (('totype', 'part'), ('prtype', 'pointsprites')):
+            _try(lambda _p=_p, _v=_v: setattr(conv.par, _p, _v))
+        for _o, _r in ((grid, False), (conv, True)):
+            for _f in ('render', 'display'):
+                _try(lambda _o=_o, _f=_f, _r=_r: setattr(_o, _f, _r))
+
+        # -- material: the deposit vertex/pixel shader --
+        vsrc, fsrc = deposit_shaders.shaders_for(p.draw_mode)
+        mat = self.parent.create(_td('glslMAT'), tag + '_mat')
+        self.ops.append(mat)
+        vdat = self.parent.create(_td('textDAT'), tag + '_vert')
+        vdat.text = vsrc
+        pdat = self.parent.create(_td('textDAT'), tag + '_pix')
+        pdat.text = fsrc
+        self.ops.extend([vdat, pdat])
+        _try(lambda: setattr(mat.par, 'glslversion', '4.60'))
+        mat.par.vdat = vdat
+        mat.par.pdat = pdat
+        _try(lambda: setattr(mat.par, 'sampler0name', 'xyzTex'))
+        _try(lambda: setattr(mat.par, 'sampler0top', xyz))
+        _try(lambda: setattr(mat.par, 'sampler1name', 'rgbaTex'))
+        _try(lambda: setattr(mat.par, 'sampler1top', rgba))
+        if p.draw_mode == 'billboards':            # spriteTex must be bound even if shapeMode != 0
+            sprite = self._resolve_read(p.inputs.get('spriteTex')) or self._default_input_top()
+            _try(lambda: setattr(mat.par, 'sampler2name', 'spriteTex'))
+            _try(lambda s=sprite: setattr(mat.par, 'sampler2top', s))
+        # additive deposit (Blend One One), no depth.
+        for _p, _v in (('blending', True), ('srcblend', 'one'), ('destblend', 'one'),
+                       ('blendop', 'add'), ('depthtest', False), ('depthwriting', False)):
+            _try(lambda _p=_p, _v=_v: setattr(mat.par, _p, _v))
+        declared = uniform_binder.declared_uniform_names(vsrc + '\n' + fsrc)
+        bound = {k: v for k, v in p.uniforms.items() if k in declared}
+        uniform_binder.bind_uniforms(mat, bound)
+        _try(lambda: setattr(geo.par, 'material', mat))
+
+        # -- render the scatter (transparent bg; clears, then accumulates onto prior) --
+        rnd = self.parent.create(_td('renderTOP'), tag + '_render')
+        self.ops.append(rnd)
+        rnd.par.geometry = geo
+        rnd.par.camera = self._points_camera()
+        rnd.par.outputresolution = 'custom'
+        rnd.par.resolutionw = tw
+        rnd.par.resolutionh = th
+        rnd.par.format = fmt
+        for _p, _v in (('bgcolorr', 0), ('bgcolorg', 0), ('bgcolorb', 0), ('bgcolora', 0)):
+            _try(lambda _p=_p, _v=_v: setattr(rnd.par, _p, _v))
+        _try(lambda: setattr(rnd.par, 'antialias', '1'))   # 1 = no AA
+
+        out = rnd if prior is None else self._add_top(prior, rnd, tag + '_acc', tw, th, fmt)
+        self._prog_tops.setdefault(p.prog_name, []).append(rnd)
+        self._tex_res[trail_id] = (tw, th)
+        self.tex_top[trail_id] = out
+        if self.surfaces is not None:
+            self.surfaces.note_write(trail_id, out)
+        self._warn('points %s: %s ss=%d -> trail %s %dx%d %s%s' % (
+            p.id, p.draw_mode, ss, trail_id, tw, th, fmt, '' if prior is None else ' (+prior)'))
+        return out
+
+    def _points_camera(self):
+        """A shared dummy orthographic Camera COMP — a Render TOP requires a camera even though the
+        deposit vertex shader writes gl_Position directly in NDC (so the camera matrices are unused)."""
+        if self._points_cam is None:
+            cam = self.parent.create(_td('cameraCOMP'), 'nm_points_cam')
+            self.ops.append(cam)
+            for _p, _v in (('projection', 'ortho'), ('orthowidth', 2.0), ('tz', 2.0),
+                           ('near', 0.1), ('far', 10.0)):
+                _try(lambda _p=_p, _v=_v: setattr(cam.par, _p, _v))
+            self._points_cam = cam
+        return self._points_cam
+
+    def _add_top(self, a, b, name, w, h, fmt):
+        """A 2-input GLSL TOP that outputs a+b — the additive accumulation of the scattered points
+        onto the trail's prior content (== the reference deposit drawing onto the trail FBO without
+        clearing; addition is associative)."""
+        dat = self.parent.create(_td('textDAT'), name + '_src')
+        # Saturate the accumulator to the float16 range. The reference's WebGL2/ANGLE float16 trail
+        # FBO SATURATES additive overflow to 65504; TD's Metal float16 yields +Inf instead, which the
+        # downstream alpha-composite blend (`/outAlpha`) turns into NaN that the blur then smears to a
+        # black frame. clamp(...,0,65504) reproduces WebGL2's saturation (clamp(+Inf,...) == 65504),
+        # bounding the deposit/diffuse/blend feedback loop exactly as the reference is bounded.
+        dat.text = ('layout(location = 0) out vec4 fragColor;\n'
+                    'void main(){ fragColor = TDOutputSwizzle(clamp('
+                    'texture(sTD2DInputs[0], vUV.st) + texture(sTD2DInputs[1], vUV.st),'
+                    ' 0.0, 65504.0)); }\n')
+        g = self.parent.create(_td('glslTOP'), name)
+        self.ops.extend([dat, g])
+        g.par.pixeldat = dat
+        _try(lambda: setattr(g.par, 'glslversion', '4.60'))
+        g.par.outputresolution = 'custom'
+        g.par.resolutionw = w
+        g.par.resolutionh = h
+        g.par.format = fmt
+        _try(lambda: g.inputConnectors[0].connect(a))
+        _try(lambda: g.inputConnectors[1].connect(b))
+        _match_reference_sampling(g)
+        return g
 
     # -- helpers -----------------------------------------------------------
     def _resolve_read(self, tex_id):

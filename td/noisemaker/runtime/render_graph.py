@@ -67,6 +67,11 @@ class Pass:
         return self.draw_mode == "points"
 
     @property
+    def is_scatter(self) -> bool:
+        """A geometry scatter draw (agents -> trail): points (1px) or billboards (sized sprites)."""
+        return self.draw_mode in ("points", "billboards")
+
+    @property
     def is_mrt(self) -> bool:
         return (self.draw_buffers or 0) > 1 or len(self.outputs) > 1
 

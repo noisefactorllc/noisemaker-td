@@ -45,6 +45,41 @@ The GLSL TOP runs a **fragment** shader over the output raster (vertex stage sup
 - **Time:** `absTime.seconds` (process-monotonic) or `me.time.seconds` (timeline). For deterministic
   offline render set `project.realTime = False` and drive `uTime`/frame explicitly.
 
+## GPU point scatter (deposit / drawMode:"points"|"billboards")
+
+The deposit pass (agents SCATTER — each writes its own pixel) can't be a fullscreen GLSL TOP; it
+needs geometry. Validated recipe (`td/points_probe.py` — a 4-agent known-answer probe lands all 4
+on their predicted pixels with exact colors + additive sum):
+
+- **Geometry:** **Grid SOP** (`rows`/`cols` = stateSize, `sizex`/`sizey` 2, `orient` `xy`) → **Convert
+  SOP** (`totype` `part`, `prtype` `pointsprites`) makes particle prims → renders as **GL_POINTS**.
+  Grid alone can't emit points (`surftype` has no Points option). **A fresh Geometry COMP ships with a
+  default `torus1` SOP whose render flag is ON — destroy all `geo.children` before adding yours**, or it
+  renders through your MAT (collapses into a filled quad). Set flags: grid `render`/`display` = False,
+  convert = True.
+- **Material:** type global is **`glslMAT`** (not `glslmaterialMAT`). Params: `vdat` (vertex DAT),
+  `pdat` (pixel DAT), `glslversion` `4.60`. Samplers via the Samplers page: `sampler0name`='xyzTex'
+  + `sampler0top`=TOP, `sampler1name`/`sampler1top`, … Custom uniforms via `vec0name`+`vec0valuex..w`.
+  Additive blend on the Common page: `blending`=True, `srcblend`=`one`, `destblend`=`one`,
+  `blendop`=`add`; `depthtest`/`depthwriting`=False.
+- **Vertex shader:** a TD MAT VS may **write `gl_Position` DIRECTLY in NDC** (reference-faithful;
+  `TDWorldToProj(TDDeform(...))` gives the identical result with an ortho camera, so direct is fine).
+  Point-sprite conversion overwrites texcoords, so recover each agent's state texel from the point
+  **position**: `ivec2(floor((TDPos().xy*0.5+0.5)*(ss-1)+0.5))` → `texelFetch(xyzTex, texel, 0)`. Write
+  `gl_PointSize` (1.0 for points; the billboard size for sprites). Pass `out vec4 vColor` to the frag.
+- **Pixel shader:** `layout(location=0) out vec4 fragColor; fragColor = TDOutputSwizzle(c);`. For
+  billboard SDFs use `TDPointCoord()` (auto 0..1 across the sprite, (0,0)=bottom-left) as the sprite UV.
+- **Render TOP:** `geometry`=Geo COMP, `camera`=a (dummy/ortho) Camera COMP — required even when the VS
+  writes gl_Position directly; `outputresolution`/`resolutionw`/`resolutionh`/`format`; transparent bg
+  `bgcolora`=0; `antialias`='1' (off). It clears to bg, so to ACCUMULATE onto an existing trail,
+  composite `priorTrail + pointsRender` (additive **Composite TOP**) — associativity == the reference's
+  "draw additively into the trail FBO without clearing".
+- `count:"input"` → stateSize² where stateSize = the xyz state-texture width. **`numpyArray`/`save` row
+  0 = BOTTOM** (GL origin; verify-anchored by a GLSL-TOP `gl_FragCoord.y` ramp) — consistent with the
+  rest of the port, so the deposit needs no Y-flip vs the WebGL2 reference.
+- Point sprites are screen-aligned (no per-vertex rotation), so `rotationVar`>0 billboards would need
+  real quads; the flagship uses `rotationVar:0`, so point sprites are exact for it.
+
 ## File & component model
 
 - **OP families:** TOP (textures/GPU), CHOP (channels), SOP (geometry), MAT (3D materials, incl. GLSL
