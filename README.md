@@ -72,10 +72,10 @@ NM_REFERENCE_ROOT=../noisemaker node tools/convert-shaders.mjs
 NM_REFERENCE_ROOT=../noisemaker node tools/export-graph.mjs --file parity/programs/solid.dsl parity/out/solid.graph.json
 ```
 
-## Parity — ✅ 71/71 single-pass PASS
+## Parity — ✅ 72/72 gateable PASS (+3 deferred)
 
 ```bash
-parity/sweep.sh            # stage 71 DSL+golden pairs, render all in TD, grade → 71/71 PASS
+parity/sweep.sh            # stage DSL+golden pairs, render all in TD, grade → 72/72 PASS, 3 deferred
 parity/sweep.sh --compare-only   # re-grade existing candidates (no TD render)
 parity/run.sh solid        # render+diff one program (or a "a b c" batch) at a uniform tolerance
 ```
@@ -85,13 +85,20 @@ the candidates (`td/parity_render_all.py`), and diffs each against the reference
 the sibling `noisemaker-godot` port (`stage_coverage.py` — identical DSL + same reference WebGL2
 renderer ⇒ byte-identical goldens), renders them all, and grades with a **per-effect tolerance**.
 
-**All 71 single-pass effects pass** — 65 at the strict gate (SSIM ≥ 0.99998, max-diff ≤ 1) and 6
-discontinuity-heavy effects (`newton`, `shadow`, `edge`, `crt`, `uvRemap`, `distortion`) gated on
-structural **SSIM ≥ 0.98** (a few pixels at fractal basins / `step()` thresholds / NEAREST coord
-tie-breaks can't be bit-exact cross-device — MoltenVK/Metal vs ANGLE/WebGL2; same set the godot
-port relaxes, with the same physics). This validates the transpiler, runtime, uniform feed, the
-no-Y-flip thesis, **NEAREST input sampling**, time, multi-pass (`blur`), two-input (`blendMode`),
-and the **feedback back-edge → Feedback TOP** path.
+**All 72 gateable effects pass** — every single-pass `synth`/`filter`/`mixer`/`classicNoisedeck`
+effect the sibling ports cover, plus the multi-input `channelCombine` and single-step `feedback`:
+66 at the strict gate (SSIM ≥ 0.99998, max-diff ≤ 1) and 6 discontinuity-heavy effects (`newton`,
+`shadow`, `edge`, `crt`, `uvRemap`, `distortion`) gated on structural **SSIM ≥ 0.98** (a few pixels
+at fractal basins / `step()` thresholds / NEAREST coord tie-breaks can't be bit-exact cross-device
+— MoltenVK/Metal vs ANGLE/WebGL2; same set the godot port relaxes, with the same physics). This
+validates the transpiler, runtime, uniform feed, the no-Y-flip thesis, **NEAREST input sampling**,
+time, multi-pass (`blur`), two-input (`blendMode`), and the **feedback back-edge → Feedback TOP**.
+
+**Deferred (`[DEFER]`):** `cellularAutomata`, `reactionDiffusion`, `motionBlur` need multi-frame
+**accumulation** — TD's Feedback TOP latches only on a real engine frame tick, which the synchronous
+render loop can't drive (needs an async realTime / Movie-File-Out frame loop; Phase 5.5). The 21
+**MRT/points/3D** programs are transpiled but unvalidatable locally (no sibling goldens and the
+reference's headless WebGL2 readback fails here). See `docs/IMPLEMENTATION-PLAN.md` §5.5.
 
 TouchDesigner has no headless startup hook, so rendering runs via an Execute DAT inside a `.toe`
 (authored offline with `toeexpand`/`toecollapse`); see `docs/TD-PLATFORM-NOTES.md`.
@@ -118,13 +125,12 @@ no further manual steps.
 | classicNoisedeck | 20 | auto |
 | **total** | **182** | **247 programs — 226 auto-transpiled, 21 MRT flagged** |
 
-Status: scaffold + tooling + runtime + generated assets complete; **71/71 single-pass effects
-pixel-parity-validated** in TouchDesigner (every `synth`/`filter`/`mixer`/`classicNoisedeck`
-effect the sibling ports cover, plus single-step `feedback`). Next: the **21 MRT/points/3D**
-programs (Phase 5.5 — Render Select TOPs, points scatter via Geometry COMP + GLSL MAT, 3D volume
-atlases) and the **live Python DSL compiler** (Phase 6). The Feedback-TOP back-edge wiring is in
-place; multi-frame *accumulation* (trails/reaction-diffusion) is exercised in Phase 5.5. See
-`docs/IMPLEMENTATION-PLAN.md`.
+Status: scaffold + tooling + runtime + generated assets complete; **72/72 gateable effects
+pixel-parity-validated** in TouchDesigner (every single-pass `synth`/`filter`/`mixer`/
+`classicNoisedeck` effect the sibling ports cover + `channelCombine` + single-step `feedback`).
+Deferred: 3 multi-frame-accumulation effects (Feedback-TOP wiring done; needs an async engine
+frame loop) and the 21 MRT/points/3D programs (transpiled; need a working golden source). Then the
+**live Python DSL compiler** (Phase 6). See `docs/IMPLEMENTATION-PLAN.md` §5.5.
 
 ## License
 

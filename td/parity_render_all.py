@@ -141,11 +141,23 @@ def render_all():
             frames = int(os.environ.get('NM_FRAMES', '8')) if getattr(
                 backend, 'has_feedback', False) else 1
             fbs = [o for o in backend.ops if o.type == 'feedback'] if frames > 1 else []
+            base_frame = root.time.frame
             if os.environ.get('NM_DIAG'):
-                log('  has_feedback=%s op-types=%s frames=%d' % (
+                log('  has_feedback=%s op-types=%s frames=%d base_frame=%s' % (
                     getattr(backend, 'has_feedback', '?'),
-                    sorted(set(o.type for o in backend.ops)), frames))
+                    sorted(set(o.type for o in backend.ops)), frames, base_frame))
             for step in range(frames):
+                # KNOWN LIMITATION (Phase 5.5): a TD Feedback TOP latches its target only on a real
+                # engine frame tick (absTime.frame), which a synchronous onStart force-cook loop
+                # never generates — stepping root.time.frame + force-cook is necessary but NOT
+                # sufficient, so feedback effects render their frame-0 state (no accumulation).
+                # Driving true accumulation needs an async realTime / Movie-File-Out frame loop.
+                # The back-edge -> Feedback TOP topology is correct; only the offline driver is.
+                if frames > 1:
+                    try:
+                        root.time.frame = base_frame + step
+                    except Exception:
+                        pass
                 out.cook(force=True)
                 for fb in fbs:
                     try:
@@ -155,7 +167,7 @@ def render_all():
                 if os.environ.get('NM_DIAG') and fbs:
                     try:
                         a = out.numpyArray()
-                        log('  frame %d out-mean=%.4f' % (step, float(a.mean())))
+                        log('  frame %d (t=%s) out-mean=%.4f' % (step, root.time.frame, float(a.mean())))
                     except Exception as e:
                         log('  frame %d mean? %s' % (step, e))
             errs = out.errors() if hasattr(out, 'errors') else ''

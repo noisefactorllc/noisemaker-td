@@ -110,10 +110,21 @@ byte-identical goldens); `parity/sweep.sh` renders all in TD and grades with a p
       transpiler sampler/output regex tolerates a trailing `// comment` (`feedback` black samplers);
       **(e)** back-edge → **Feedback TOP** wiring + N-frame cook (`feedback`). The harness now also
       surfaces GLSL compile errors via an Info DAT (`parity_render_all._shader_errors`).
-- [ ] 5.5 the **21 MRT/points/3D** programs — finish by hand (agents: MRT state + points deposit +
-      diffuse; 3D: volume atlas + raymarch + geoOut). Hardest; loosen tolerance for chaotic sims.
-      Also validate multi-frame feedback *accumulation* here (the back-edge wiring exists; the
-      single-step `feedback` golden is ~passthrough so accumulation isn't yet stress-tested).
+- [x] 5.4b `channelCombine` (multi-input) added → **72/72 gateable PASS** (`parity/sweep.sh`).
+- [~] 5.5a **Multi-frame feedback accumulation** — `cellularAutomata`, `reactionDiffusion`,
+      `motionBlur` have goldens but are **deferred** (sweep `[DEFER]`). The golden accumulates over
+      8 frames; TD's Feedback TOP latches only on a real engine frame tick (`absTime.frame`), which
+      a synchronous `onStart` force-cook loop can't drive (stepping `root.time.frame` + force-cook
+      is necessary but NOT sufficient — verified: frame advances, mean stays frame-0). Needs an
+      **async realTime / Movie-File-Out frame loop**. The back-edge → Feedback TOP wiring is correct;
+      `cellularAutomata`/`reactionDiffusion` additionally need the global state-surface self-loop
+      (same-pass read+write of a `*state*` surface — `surface_manager`; my back-edge detector only
+      catches cross-pass `j>i`). NB `reactionDiffusion` is cross-backend-divergent even in godot.
+- [ ] 5.5b **The 21 MRT/points/3D programs** — transpiled but **unvalidatable locally**: godot has
+      no goldens for them and `parity/export-and-render.mjs` fails here (`readback failed: FBO
+      incomplete` — the headless WebGL2 float-FBO readback path is unavailable). Builder work
+      (Render Select TOP per draw buffer; points scatter via Geometry COMP + GLSL MAT + Render TOP;
+      3D volume atlas + raymarch + geoOut) is ready to do, but gating needs a working golden source.
 - [x] Coverage tracked in README; per-effect tolerances + rationale live in `parity/sweep.sh`.
 
 ## Phase 6 — Live TD-Python DSL compiler (staged)  ⛔ gated on Phase 4
