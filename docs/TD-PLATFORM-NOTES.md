@@ -110,6 +110,39 @@ on their predicted pixels with exact colors + additive sum):
   macOS). It is fully scriptable but **not** a true headless daemon/cron without a real-or-dummy display +
   auto-login. This port's `parity/run.sh` launches TD display-bound, scripted, auto-quit.
 
+## 3D volume raymarch (render3d / renderLit3d) — BLOCKED by two TD platform limits
+
+The synth3d generators (`shape3d`, `noise3d`, `fractal3d`, …) precompute a 3D volume as a **2D atlas**
+(`atlasTexel(x,y,z) = (x, y + z·volSize)`, default volumeSize 64 → a **64×4096** rgba16f texture); a
+`precompute` pass (often MRT: `fragColor`=volume + `geoOut`=normals) fills it, then `render3d`
+raymarches it (also MRT: color + screen-geo). The compiler emits the correct graph (byte-identical to
+the three/babylon ports) and the shaders are complete & faithful — but the raymarch renders garbage on
+this TD build. **Two independent, well-isolated platform causes** (the port logic is correct):
+
+1. **Non-Commercial license 1280×1280 resolution cap.** A `glslTOP` whose params are set to 64×4096
+   (verified at build: `outputresolution='custom'`, `resolutionw=64`, `resolutionh=4096`) **cooks at
+   20×1280** — exactly 0.3125× (= 1280/4096) on both axes, with NO limiting param on the TOP. This is
+   the Non-Commercial license's 1280-pixel cap downscaling the tall atlas. `atlasTexel` then indexes a
+   mis-scaled texture → out-of-bounds/wrong texels. (Square ≤1280 textures are fine: the agent state
+   cooks at a full 1024×1024.) Workaround: a Commercial/Educational license, or `volumeSize:x32`
+   (32×1024, under the cap) — but x32 is a different render than the x64 golden, and it STILL fails
+   because of cause #2.
+
+2. **MRT buffer → GLSL TOP sampler drops the G channel.** With volumeSize ≤ 32 the volume cooks at the
+   correct size and a **direct numpyArray readback of the volume Render Select is grayscale (R=G=B)** —
+   but a *GLSL TOP sampling that same buffer* (`texture()` / `texelFetch`) reads **R,B only, G = 0**.
+   So `sampleVolume().g == 0`, the `colorVariance<0.01` grayscale branch in `render3d.frag` is skipped,
+   and `baseColor=(R,0,B)` leaks → a magenta render that misses the isosurface. The input IS correctly
+   wired (`render3d.volumeCache → <pass>_b0` Render Select); inserting a Null TOP between them does NOT
+   fix it. NB the agent deposit reads MRT Render Select buffers via a GLSL **MAT** sampler fine, so this
+   is specific to the GLSL **TOP** sampler path (or this buffer/format) — mechanism not yet pinned;
+   would need Derivative-level MRT-sampler debugging.
+
+Isolation harness: `parity/evolve.sh <prog>` with `NM_DUMP_PROG=precompute` (dump the volume producer)
+and `NM_DUMP_TEXID=node_0_volumeCache` (dump the Render Select) shows the size cap (#1) and the
+grayscale-when-dumped vs G=0-when-sampled split (#2). The classicNoisedeck `noise3d`/`shapes3d` (2D,
+`search classicNoisedeck`) are unrelated and DO render at parity — they are not the synth3d volume path.
+
 ## Sources
 
 - Cask: `brew info --cask touchdesigner`; https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/t/touchdesigner.rb
