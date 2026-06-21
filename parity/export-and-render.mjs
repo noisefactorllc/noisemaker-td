@@ -100,13 +100,14 @@ const GLOBALS_PREFIX = '__noisemaker'
 const STATUS_TIMEOUT = 300000
 
 function parseArgs (argv) {
-  const opts = { time: 0.25, size: 256, backend: 'webgl2' }
+  const opts = { time: 0.25, size: 256, backend: 'webgl2', cubemap: false }
   const pos = []
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--time') opts.time = parseFloat(argv[++i])
     else if (a === '--size') opts.size = parseInt(argv[++i], 10)
     else if (a === '--backend') opts.backend = argv[++i]
+    else if (a === '--cubemap') opts.cubemap = true   // bake 6 cube faces via pipeline.renderCubemap
     else pos.push(a)
   }
   opts.programPath = pos[0]
@@ -253,6 +254,30 @@ async function main () {
       }
       return true
     }, opts.size, { timeout: STATUS_TIMEOUT })
+
+    // --cubemap: bake the 6 cube faces. pipeline.renderCubemap loops the GL face order
+    // (+X,-X,+Y,-Y,+Z,-Z), setting cubeBasis per face and reading back each output surface
+    // TOP-DOWN as float->round(*255) 8-bit (backend.readPixels) — the SAME encoding as the
+    // single-frame golden below and as TD's out.save(), so faces compare directly. The render
+    // loop is already paused (above), so the driver owns cubeBasis.
+    if (opts.cubemap) {
+      const res = await page.evaluate(async ({ size, time }) => {
+        const p = window.__noisemakerRenderingPipeline
+        const r = window.__noisemakerCanvasRenderer
+        if (r && r.stop) r.stop()                 // ensure the RAF loop can't overwrite cubeBasis
+        if (!p || !p.renderCubemap) return { error: 'pipeline has no renderCubemap()' }
+        const fs = await p.renderCubemap({ size, time })
+        return { faces: fs.map(f => ({ width: f.width, height: f.height, data: Array.from(f.data) })) }
+      }, { size: opts.size, time: opts.time })
+      if (res.error) throw new Error(res.error)
+      res.faces.forEach((f, k) => {
+        // faces are already top-down 8-bit — encode directly (no Y-flip).
+        const png = encodePng(f.width, f.height, Buffer.from(f.data))
+        writeFileSync(join(opts.outDir, `${programName}.face${k}.golden.png`), png)
+      })
+      process.stderr.write(`[parity] wrote ${res.faces.length} cube faces (${opts.size}px) for ${programName}\n`)
+      return  // skip the single-frame path (finally{} still tears the session down)
+    }
 
     // Pin the normalized frame time, then render deterministic frames by driving the
     // PIPELINE directly (the CanvasRenderer re-syncs canvas size per frame and can

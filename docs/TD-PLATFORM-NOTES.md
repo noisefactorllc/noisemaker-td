@@ -152,6 +152,22 @@ mapping and the reference's column-major flat-array convention were pinned by a 
 now routes any 9- or 16-element value (mat3/mat4) to `_bind_matrices` (a reused per-slot Table DAT,
 so set_time re-binds cleanly); cubeBasis is the only catalog user today, but mat4 is handled too.
 
+**6-FACE CUBEMAP BAKE — DONE (both renderers, all 6 faces + the cross at max-diff ≤ 1).** A full
+cubemap is HOST-DRIVEN (reference `Pipeline.renderCubemap`): render the same graph 6×, setting
+`cubeBasis` to each GL face basis (+X,-X,+Y,-Y,+Z,-Z) between renders — which is exactly what the
+mat3 binding above unlocks (the single-face test used the DSL-default **identity** basis, so the
+bake is the first exercise of the 6 NON-identity bases). `td/cubemap_bake.py` finds the cube-camera
+TOP (the effect whose declared uniforms include `cubeBasis`), then per face sets
+`bound['cubeBasis']` to the column-major `[right|up|forward]` basis (right = cross(up, forward);
+mirrors `renderer/cubeCamera.faceBasisMat3`), re-binds (refills the Table DAT), cooks, saves — only
+the cube-camera TOP + downstream re-cook (the upstream volume is computed once). The reference
+goldens come from `export-and-render.mjs --cubemap` (calls `pipeline.renderCubemap`, whose
+`backend.readPixels` is the SAME top-down float→8-bit encoding as the single-frame golden + TD's
+`out.save()`, so faces compare directly). `parity/cube_cross.py` assembles the 6 into the canonical
+horizontal cross (`cubeExport.crossLayout`). Driver: **`parity/cubemap.sh <prog>`** (default
+`synth3d_renderCubemapSurface`; also `synth3d_renderCubemap3d`). Result: 6 distinct faces, every
+face max-diff ≤ 1 (one byte-identical), cross ssim 1.0 — both cube renderers.
+
 **filter3d flow3d — DONE (renders end-to-end, chaos-gated ssim ~0.84 at f8).** A stateful 3D
 agent-flow filter: MRT agent pass (3 state buffers, 512² agents) → diffuse → copy → **points
 deposit** → blend, output a volume atlas raymarched by `render3d`. Every piece already existed
