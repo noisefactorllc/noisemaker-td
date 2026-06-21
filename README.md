@@ -1,8 +1,8 @@
 # noisemaker-td
 
-A structural port of the **Noisemaker** procedural-texture shader engine
-(`../noisemaker/shaders`) to **Derivative TouchDesigner**. It mirrors the existing
-Unity/HLSL (`../noisemaker-hlsl`) and Godot (`../noisemaker-godot`) ports: the same DSL,
+A structural port of the **Noisemaker** procedural-texture shader engine (its
+`shaders/`) to **Derivative TouchDesigner**. It mirrors the existing Unity/HLSL
+(`noisemaker-hlsl`) and Godot (`noisemaker-godot`) ports: the same DSL,
 the same effects, the same render-graph seam — rendered through a network of **GLSL TOP**
 operators built programmatically in TouchDesigner Python, tolerance-parity to the JS/WebGL2
 reference.
@@ -58,18 +58,19 @@ ARCHITECTURE.md  PORTING-GUIDE.md
 ## Build / regenerate
 
 No new dependencies — reuses the reference Node tooling (Node 26) and Python 3 (numpy/pillow
-for `compare.py`). All tools read the reference repo via `NM_REFERENCE_ROOT` (defaults to
-`../noisemaker`).
+for `compare.py`). All tools read the upstream Noisemaker engine via `NM_REFERENCE_ROOT`
+(required; no default — this repo assumes no sibling project on clone). Point it at the engine
+root (the tree containing `shaders/`).
 
 ```bash
 # effect-definition JSON (182 effects)
-NM_REFERENCE_ROOT=../noisemaker node tools/convert-definitions.mjs
+NM_REFERENCE_ROOT=/path/to/noisemaker node tools/convert-definitions.mjs
 
 # TD GLSL shaders (247 programs; 226 auto, 21 MRT flagged for manual finish)
-NM_REFERENCE_ROOT=../noisemaker node tools/convert-shaders.mjs
+NM_REFERENCE_ROOT=/path/to/noisemaker node tools/convert-shaders.mjs
 
 # a golden graph JSON
-NM_REFERENCE_ROOT=../noisemaker node tools/export-graph.mjs --file parity/programs/solid.dsl parity/out/solid.graph.json
+NM_REFERENCE_ROOT=/path/to/noisemaker node tools/export-graph.mjs --file parity/programs/solid.dsl parity/out/solid.graph.json
 ```
 
 ## Parity — ✅ 72/72 gateable PASS (+3 deferred)
@@ -81,9 +82,9 @@ parity/run.sh solid        # render+diff one program (or a "a b c" batch) at a u
 ```
 `run.sh` builds a bootstrap `.toe` (`td/build_parity_toe.py`), launches TouchDesigner to render
 the candidates (`td/parity_render_all.py`), and diffs each against the reference golden
-(`parity/compare.py`, via `parity/.venv`). `sweep.sh` stages every reusable DSL+golden pair from
-the sibling `noisemaker-godot` port (`stage_coverage.py` — identical DSL + same reference WebGL2
-renderer ⇒ byte-identical goldens), renders them all, and grades with a **per-effect tolerance**.
+(`parity/compare.py`, via `parity/.venv`). `sweep.sh` classifies the in-repo DSLs and renders
+their reference goldens from the upstream engine (`stage_coverage.py` via `NM_REFERENCE_ROOT` —
+no sibling project needed), renders the candidates in TD, and grades with a **per-effect tolerance**.
 
 **All 72 gateable effects pass** — every single-pass `synth`/`filter`/`mixer`/`classicNoisedeck`
 effect the sibling ports cover, plus the multi-input `channelCombine` and single-step `feedback`:
@@ -138,4 +139,4 @@ See `docs/IMPLEMENTATION-PLAN.md` Phase 6.
 ## License
 
 MIT (port scaffolding). The Noisemaker engine and effects are the reference project's;
-TouchDesigner is Derivative's. See `../noisemaker` for upstream terms.
+TouchDesigner is Derivative's. See the upstream Noisemaker project for upstream terms.

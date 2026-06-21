@@ -2,10 +2,13 @@
 # parity/sweep.sh — full parity sweep: render every staged program in TouchDesigner, then compare
 # each against its reference golden with a PER-EFFECT tolerance. Effects with hard discontinuities
 # (fractal root basins, step() thresholds, df64 ULP, NEAREST coord tie-breaks) cannot be bit-exact
-# cross-device (MoltenVK/Metal vs ANGLE/WebGL2), so they are gated on structural SSIM — mirrors the
-# sibling noisemaker-godot sweep, with TD-measured pixel counts in the comments.
+# cross-device (Metal vs ANGLE/WebGL2), so they are gated on structural SSIM (per-effect, with
+# TD-measured pixel counts in the comments below).
 #
-#   parity/sweep.sh                 # stage (from ../noisemaker-godot) + render all + compare
+# Self-contained: the DSLs are in-repo (parity/programs/) and the goldens are rendered from the
+# upstream engine via NM_REFERENCE_ROOT (no sibling project assumed on clone).
+#
+#   NM_REFERENCE_ROOT=/path/to/noisemaker parity/sweep.sh   # classify + render goldens + compare
 #   parity/sweep.sh --no-stage      # skip re-staging; use the DSLs/goldens already in out/
 #   parity/sweep.sh --compare-only  # don't render; re-grade the existing candidates
 set -uo pipefail
@@ -45,7 +48,7 @@ for a in "$@"; do case "$a" in
   --compare-only) stage=0; render=0 ;;
 esac; done
 
-[ "$stage" = 1 ] && "$PY" "$REPO/parity/stage_coverage.py" >/dev/null
+if [ "$stage" = 1 ]; then "$PY" "$REPO/parity/stage_coverage.py" >/dev/null || exit $?; fi
 SET="$(cat "$OUT/_render_set.txt" 2>/dev/null || true)"
 [ -n "$SET" ] || { echo "no render set — run parity/stage_coverage.py first"; exit 1; }
 

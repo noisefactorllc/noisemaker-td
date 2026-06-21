@@ -4,15 +4,14 @@
 // is self-contained for the builtin namespaces (shaders/src/runtime/tags.js seeds them), so no
 // effect bootstrap is needed at the parse stage.
 //
-// Env: NM_REFERENCE_ROOT  reference repo root (default ../noisemaker)
+// Env: NM_REFERENCE_ROOT  reference engine root (required; no default — no sibling assumed)
 import { readFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { referenceRoot } from './reference-root.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const REF = process.env.NM_REFERENCE_ROOT
-  ? resolve(process.env.NM_REFERENCE_ROOT)
-  : resolve(__dirname, '..', '..', 'noisemaker')
+const REF = referenceRoot()
 
 const lang = await import(pathToFileURL(join(REF, 'shaders', 'src', 'lang', 'index.js')).href)
 const { lex, parse } = lang

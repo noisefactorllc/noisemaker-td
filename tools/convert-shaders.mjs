@@ -36,18 +36,17 @@
 //   node convert-shaders.mjs --dry-run       # report only, write nothing
 //
 // Env:
-//   NM_REFERENCE_ROOT  reference repo root (default: ../../noisemaker)
+//   NM_REFERENCE_ROOT  reference engine root (required; no default — no sibling assumed)
 //   NM_OUT_DIR         output root (default: ../td/noisemaker/shaders/effects)
 
 import { readdirSync, statSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { readFileSync } from 'node:fs'
 import { join, dirname, resolve, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { referenceRoot } from './reference-root.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const REFERENCE_ROOT = process.env.NM_REFERENCE_ROOT
-  ? resolve(process.env.NM_REFERENCE_ROOT)
-  : resolve(__dirname, '..', '..', 'noisemaker')
+const REFERENCE_ROOT = referenceRoot()
 const EFFECTS_DIR = join(REFERENCE_ROOT, 'shaders', 'effects')
 const OUT_DIR = process.env.NM_OUT_DIR
   ? resolve(process.env.NM_OUT_DIR)

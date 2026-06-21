@@ -16,7 +16,7 @@
 //   node export-graph.mjs "<dsl>"            # prints JSON to stdout
 //
 // Env:
-//   NM_REFERENCE_ROOT   override the reference repo root (default: ../.. of this file)
+//   NM_REFERENCE_ROOT   reference engine root (required; no default — no sibling assumed on clone)
 //
 // Requires the sibling reference engine at <root>/shaders/src/index.js. No build
 // step — the reference is plain ESM. See tools/package.json.
@@ -24,14 +24,12 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import { join, dirname, resolve, basename } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { referenceRoot } from './reference-root.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// Reference engine lives in the sibling `noisemaker` repo (this repo was split
-// out of noisemaker/noisemaker-hlsl/). Override with NM_REFERENCE_ROOT.
-const REFERENCE_ROOT = process.env.NM_REFERENCE_ROOT
-  ? resolve(process.env.NM_REFERENCE_ROOT)
-  : resolve(__dirname, '..', '..', 'noisemaker')
+// Reference engine root from NM_REFERENCE_ROOT (no default — this repo assumes no sibling on clone).
+const REFERENCE_ROOT = referenceRoot()
 
 const SRC_INDEX = join(REFERENCE_ROOT, 'shaders', 'src', 'index.js')
 const EFFECTS_DIR = join(REFERENCE_ROOT, 'shaders', 'effects')

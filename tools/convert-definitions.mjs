@@ -23,19 +23,17 @@
 //   node convert-definitions.mjs --dry-run      # print summary, write nothing
 //
 // Env:
-//   NM_REFERENCE_ROOT  override reference repo root (default: ../.. of this file)
+//   NM_REFERENCE_ROOT  reference engine root (required; no default — no sibling assumed)
 //   NM_OUT_DIR         override output dir (default: ../td/noisemaker/effects)
 
 import { readdirSync, statSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { join, dirname, resolve, basename } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { referenceRoot } from './reference-root.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-// Reference engine lives in the sibling `noisemaker` repo (this repo was split
-// out of noisemaker/noisemaker-hlsl/). Override with NM_REFERENCE_ROOT.
-const REFERENCE_ROOT = process.env.NM_REFERENCE_ROOT
-  ? resolve(process.env.NM_REFERENCE_ROOT)
-  : resolve(__dirname, '..', '..', 'noisemaker')
+// Reference engine root from NM_REFERENCE_ROOT (no default — no sibling assumed on clone).
+const REFERENCE_ROOT = referenceRoot()
 const EFFECTS_DIR = join(REFERENCE_ROOT, 'shaders', 'effects')
 const OUT_DIR = process.env.NM_OUT_DIR
   ? resolve(process.env.NM_OUT_DIR)

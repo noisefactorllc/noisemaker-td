@@ -1,11 +1,11 @@
 # Noisemaker → TouchDesigner Port — Implementation Plan
 
-**Goal:** A structural port of the Noisemaker shader engine (`../noisemaker/shaders`) to
-**TouchDesigner 2025.32820+**, mirroring the Unity/HLSL (`../noisemaker-hlsl`) and Godot
-(`../noisemaker-godot`) ports: live procedural texture from the Polymorphic DSL, rendered
+**Goal:** A structural port of the Noisemaker shader engine (its `shaders/`, reached via
+`NM_REFERENCE_ROOT`) to **TouchDesigner 2025.32820+**, mirroring the Unity/HLSL (`noisemaker-hlsl`)
+and Godot (`noisemaker-godot`) ports: live procedural texture from the Polymorphic DSL, rendered
 through a Python-built **GLSL TOP** network, tolerance-parity to the JS/WebGL2 reference.
 
-**Architecture (see `../ARCHITECTURE.md`):** the seam is the **Render Graph JSON**
+**Architecture (see ARCHITECTURE.md at the repo root):** the seam is the **Render Graph JSON**
 (`compileGraph(dsl) → {passes, programs, textures, renderSurface}`). Two producers: (a)
 golden/offline — the *unchanged* reference JS via reused `tools/export-graph.mjs`; (b)
 live/in-engine — a staged TD-Python DSL frontend (Phase 6). Both feed one consumer: the TD
@@ -98,8 +98,8 @@ All eight match the reference at **SSIM ≥ 0.99998, max-diff ≤ 1** via `parit
 ## Phase 5 — Expand coverage (templated)  ✅ 5.1–5.4 DONE — 71/71 single-pass PASS
 
 Per-effect: `.frag` exists; parity-gate, fix any auto-transpile miss. `parity/stage_coverage.py`
-reuses the sibling `noisemaker-godot` DSL+golden pairs (identical DSL + same reference renderer ⇒
-byte-identical goldens); `parity/sweep.sh` renders all in TD and grades with a per-effect tolerance.
+classifies the in-repo DSLs and renders their reference goldens from the upstream engine (via
+`NM_REFERENCE_ROOT`, no sibling needed); `parity/sweep.sh` renders all in TD and grades with a per-effect tolerance.
 - [x] 5.1–5.4 — **71/71 single-pass** (`synth`/`filter`/`mixer`/`classicNoisedeck` + single-step
       `feedback`): 65 strict (SSIM ≥ 0.99998, max-diff ≤ 1) + 6 SSIM-gated discontinuity effects
       (`newton`/`shadow`/`edge`/`crt`/`uvRemap`/`distortion`, mirroring the godot tolerance table).

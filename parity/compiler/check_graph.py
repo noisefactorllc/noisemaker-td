@@ -44,8 +44,9 @@ def reg():
 
 
 def oracle(path):
-    env = dict(os.environ, NM_REFERENCE_ROOT=os.path.join(REPO, '..', 'noisemaker'))
-    r = subprocess.run(['node', EXPORT, '--file', path], env=env, capture_output=True, text=True)
+    # Inherit NM_REFERENCE_ROOT from the environment (no '..' default — no sibling assumed on clone).
+    # export-graph.mjs errors clearly (exit 3) if it is unset.
+    r = subprocess.run(['node', EXPORT, '--file', path], capture_output=True, text=True)
     if r.returncode != 0:
         return None, (r.stderr or r.stdout or 'node failed').strip().splitlines()[-1]
     return json.loads(r.stdout), None

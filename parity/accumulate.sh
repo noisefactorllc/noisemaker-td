@@ -26,7 +26,7 @@
 #                      only; f4+ is reported, not failed — the same chaos class as navierStokes and
 #                      the flagship target (see docs/CHAOS-GATE.md).
 #
-#   parity/accumulate.sh              # (re)generate goldens via ../noisemaker, drive all, grade
+#   NM_REFERENCE_ROOT=/path/to/noisemaker parity/accumulate.sh   # regen goldens, drive all, grade
 #   parity/accumulate.sh --no-stage   # reuse existing parity/out/<e>.f*.golden.png; just drive+grade
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/.." && pwd)"
@@ -47,7 +47,7 @@ if [ "$stage" = 1 ]; then
   for N in $GRADE_FRAMES; do
     f="$(printf '%04d' "$N")"; gdir="$OUT/_acc_g$N"; rm -rf "$gdir"
     ( cd "$REPO" && node parity/batch-golden.mjs "$MAN" "$gdir" --size 256 --frames "$N" --timestep 0 --time 0.25 ) \
-      >/dev/null 2>&1 || { echo "golden gen failed at frames=$N (is ../noisemaker present?)"; exit 2; }
+      >/dev/null 2>&1 || { echo "golden gen failed at frames=$N (set NM_REFERENCE_ROOT to the upstream engine)"; exit 2; }
     for e in $EFFECTS; do cp "$gdir/$e.golden.png" "$OUT/$e.f$f.golden.png"; done
   done
   rm -f "$MAN"

@@ -4,15 +4,14 @@
 // against (parity/compiler/check_lex.py). lex() is pure tokenization — no registry needed,
 // so we import lexer.js directly to avoid pulling in the validator/runtime.
 //
-// Env: NM_REFERENCE_ROOT  reference repo root (default ../noisemaker)
+// Env: NM_REFERENCE_ROOT  reference engine root (required; no default — no sibling assumed)
 import { readFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { referenceRoot } from './reference-root.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const REF = process.env.NM_REFERENCE_ROOT
-  ? resolve(process.env.NM_REFERENCE_ROOT)
-  : resolve(__dirname, '..', '..', 'noisemaker')
+const REF = referenceRoot()
 
 const { lex } = await import(pathToFileURL(join(REF, 'shaders', 'src', 'lang', 'lexer.js')).href)
 

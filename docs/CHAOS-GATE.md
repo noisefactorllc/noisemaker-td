@@ -17,7 +17,7 @@ diverge cross-backend"** principle, now pinned per class with measured numbers.
 
 The sibling ports agree on the boundary: **three.js and babylon get `target.dsl` byte-identical**
 because they *are* WebGL2/ANGLE (the golden's own rasterizer); **godot** can't (its cause is a
-`GLSL→SPIR-V→Metal` `pow` rounding — see `../noisemaker-godot/docs/CHAOS-GATE.md`); **this port**
+`GLSL→SPIR-V→Metal` `pow` rounding — documented in the Godot port's own CHAOS-GATE notes); **this port**
 can't either, for the rasterizer reason below.
 
 ---

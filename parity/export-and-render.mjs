@@ -27,20 +27,17 @@
 // Writes  <outDir>/<programName>.golden.png  and  <outDir>/<programName>.graph.json
 //
 // Prereqs: Node, Playwright + a system Chrome (the harness launches chromium),
-// and the reference repo present as the sibling tree (../../shaders, ../../demo).
+// and the upstream Noisemaker engine reachable via NM_REFERENCE_ROOT (its shaders/, demo/).
 // See parity/README.md.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve, basename, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { referenceRoot } from '../tools/reference-root.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-// Reference (golden) engine lives in the sibling `noisemaker` repo. Override
-// with NM_REFERENCE_ROOT if it's elsewhere. (This repo was split out of
-// noisemaker/noisemaker-hlsl/, where the default was just `../..`.)
-const REFERENCE_ROOT = process.env.NM_REFERENCE_ROOT
-  ? resolve(process.env.NM_REFERENCE_ROOT)
-  : resolve(__dirname, '..', '..', 'noisemaker')
+// Reference (golden) engine root from NM_REFERENCE_ROOT (no default — no sibling assumed on clone).
+const REFERENCE_ROOT = referenceRoot()
 
 const HARNESS = join(REFERENCE_ROOT, 'vendor', 'shade-mcp', 'harness', 'index.js')
 const EXPORT_GRAPH = join(__dirname, '..', 'tools', 'export-graph.mjs')

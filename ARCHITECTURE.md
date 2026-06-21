@@ -1,8 +1,8 @@
 # Noisemaker → TouchDesigner Port — Architecture
 
-A structural port of the Noisemaker shader engine (`../noisemaker/shaders`) to
-**Derivative TouchDesigner** (2025.32820+), mirroring the existing Unity/HLSL port
-(`../noisemaker-hlsl`) and the Godot port (`../noisemaker-godot`): live procedural
+A structural port of the Noisemaker shader engine (its `shaders/`, reached via
+`NM_REFERENCE_ROOT`) to **Derivative TouchDesigner** (2025.32820+), mirroring the existing
+Unity/HLSL port (`noisemaker-hlsl`) and the Godot port (`noisemaker-godot`): live procedural
 texture from the Polymorphic DSL, rendered through a network of **GLSL TOP**
 operators built programmatically in TouchDesigner Python, **tolerance-parity** to the
 JS/WebGL2 reference.
@@ -52,8 +52,8 @@ The HLSL and Godot ports translate from the canonical **WGSL** because their tar
 origins. **TouchDesigner's GLSL TOP is OpenGL GLSL** — the *same family and the same
 raster convention as the reference's WebGL2 backend.** Consequences:
 
-1. **Source of truth for the TD port is `../noisemaker/shaders/effects/<ns>/<name>/glsl/*.glsl`**
-   (the reference's shipping WebGL2 shaders), cross-checked against WGSL only when a
+1. **Source of truth for the TD port is the upstream engine's `shaders/effects/<ns>/<name>/glsl/*.glsl`**
+   (the reference's shipping WebGL2 shaders, under `NM_REFERENCE_ROOT`), cross-checked against WGSL only when a
    GLSL file is absent. These are already parity-tested against WGSL by the reference.
 2. The per-effect transform is **mechanical**, so most of the 182 effects are
    **auto-transpiled** by `tools/convert-shaders.mjs` rather than hand-ported. The

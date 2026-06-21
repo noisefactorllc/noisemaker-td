@@ -18,7 +18,9 @@ set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
-REF="${NM_REFERENCE_ROOT:-$REPO/../noisemaker}"
+# Reference engine via NM_REFERENCE_ROOT (no default — this repo assumes no sibling project on clone).
+REF="${NM_REFERENCE_ROOT:-}"
+[ -n "$REF" ] && [ -d "$REF/shaders" ] || { echo "set NM_REFERENCE_ROOT to the upstream Noisemaker engine (the tree containing shaders/) — no sibling is assumed on clone"; exit 2; }
 TD="${TD_BIN:-/Applications/TouchDesigner.app/Contents/MacOS/TouchDesigner}"
 PY="$REPO/parity/.venv/bin/python"; [ -x "$PY" ] || PY=python3   # needs numpy + pillow
 SIZE="${SIZE:-256}"; TIME="${TIME:-0.25}"; TOL="${TOL:-2}"; SSIM="${SSIM:-0.98}"

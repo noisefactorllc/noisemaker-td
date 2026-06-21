@@ -1,9 +1,9 @@
 {
-  "name": "noisemaker-hlsl-tools",
+  "name": "noisemaker-td-tools",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Offline tooling for the noisemaker-hlsl Unity port. These scripts import the SIBLING reference engine (../../shaders/src/index.js) — the unchanged JS Noisemaker compiler — to (a) export GOLDEN render-graph JSON from DSL (export-graph.mjs) and (b) regenerate all effect-definition JSON for the Unity package (convert-definitions.mjs). No build step is required; the reference is plain browser-compatible ESM run under Node only for tooling. Override the reference root with NM_REFERENCE_ROOT if this folder is relocated.",
+  "description": "Offline tooling for the noisemaker-td TouchDesigner port. These scripts import the upstream Noisemaker engine — the unchanged JS compiler, reached via NM_REFERENCE_ROOT (no default; this repo assumes no sibling project on clone) — to (a) export GOLDEN render-graph JSON from DSL (export-graph.mjs) and (b) regenerate effect-definition JSON / transpile shaders (convert-definitions.mjs, convert-shaders.mjs). No build step is required; the reference is plain browser-compatible ESM run under Node only for tooling.",
   "scripts": {
     "export-graph": "node export-graph.mjs",
     "convert-definitions": "node convert-definitions.mjs"
