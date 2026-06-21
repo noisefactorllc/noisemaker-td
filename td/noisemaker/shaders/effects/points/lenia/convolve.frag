@@ -1,9 +1,10 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: densityTex=0
 // NM_OUTPUT: fragColor
+#define densityTex sTD2DInputs[0]
 // Kernel convolution pass
 // Applies K(r) gaussian shell kernel to the density field
 
-uniform sampler2D densityTex;  // Raw particle deposits
+
 uniform vec2 resolution;
 
 // Kernel parameters

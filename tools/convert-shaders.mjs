@@ -86,7 +86,10 @@ function transpile (src, { flipY }) {
   let body = out.join('\n')
 
   // 2. input samplers: declaration order → sTD2DInputs[i].
-  const samplerRe = /^[ \t]*uniform[ \t]+sampler2D[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*$/gm
+  // Tolerate a trailing line comment after the `;` (the reference declares e.g.
+  // `uniform sampler2D selfTex;   // Feedback buffer` — without `(?://.*)?` these were missed,
+  // left as unbound custom samplers reading black: the all-black `feedback` bug).
+  const samplerRe = /^[ \t]*uniform[ \t]+sampler2D[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*(?:\/\/.*)?$/gm
   const inputs = []
   let m
   while ((m = samplerRe.exec(body)) !== null) inputs.push(m[1])
@@ -94,7 +97,7 @@ function transpile (src, { flipY }) {
   const inputDefines = inputs.map((n, i) => `#define ${n} sTD2DInputs[${i}]`).join('\n')
 
   // 3. fragment outputs.
-  const outRe = /^[ \t]*(?:layout\s*\([^)]*\)\s*)?out[ \t]+vec4[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*$/gm
+  const outRe = /^[ \t]*(?:layout\s*\([^)]*\)\s*)?out[ \t]+vec4[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*(?:\/\/.*)?$/gm
   const outs = []
   let om
   while ((om = outRe.exec(body)) !== null) outs.push(om[1])

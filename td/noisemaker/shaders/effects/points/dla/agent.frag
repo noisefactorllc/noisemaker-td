@@ -1,5 +1,10 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2 gridTex=3 inputTex=4
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA
+#define xyzTex sTD2DInputs[0]
+#define velTex sTD2DInputs[1]
+#define rgbaTex sTD2DInputs[2]
+#define gridTex sTD2DInputs[3]
+#define inputTex sTD2DInputs[4]
 // Standard uniforms
 uniform vec2 resolution;
 uniform float time;
@@ -13,13 +18,13 @@ uniform int stateSize;
 uniform bool resetState;
 
 // Input state from pipeline (from pointsEmit)
-uniform sampler2D xyzTex;    // [x, y, z, alive]
-uniform sampler2D velTex;    // [seed, justStuck, 0, agentRand]
-uniform sampler2D rgbaTex;   // [r, g, b, a]
+
+
+
 
 // DLA internal textures
-uniform sampler2D gridTex;   // Anchor grid (internal, not rendered)
-uniform sampler2D inputTex;  // For input-weighted movement
+
+
 
 // Output state (MRT)
 layout(location = 0) out vec4 outXYZ;

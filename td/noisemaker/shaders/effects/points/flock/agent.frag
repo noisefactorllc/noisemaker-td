@@ -1,5 +1,8 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA
+#define xyzTex sTD2DInputs[0]
+#define velTex sTD2DInputs[1]
+#define rgbaTex sTD2DInputs[2]
 // Standard uniforms
 uniform vec2 resolution;
 uniform float time;
@@ -17,9 +20,9 @@ uniform float wallMargin;
 uniform float noiseWeight;
 
 // Input state from pipeline (from pointsEmit)
-uniform sampler2D xyzTex;    // [x, y, z, alive]
-uniform sampler2D velTex;    // [vx, vy, age, seed]
-uniform sampler2D rgbaTex;   // [r, g, b, a]
+
+
+
 
 // Output state (MRT)
 layout(location = 0) out vec4 outXYZ;

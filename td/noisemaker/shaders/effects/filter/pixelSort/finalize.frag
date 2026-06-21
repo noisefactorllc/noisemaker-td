@@ -1,7 +1,7 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: inputTex=0 originalTex=1
 // NM_OUTPUT: fragColor
-uniform sampler2D inputTex; // sorted
-uniform sampler2D originalTex; // original
+#define inputTex sTD2DInputs[0]
+#define originalTex sTD2DInputs[1]
 uniform vec2 resolution;
 uniform float angled;
 uniform bool darkest;

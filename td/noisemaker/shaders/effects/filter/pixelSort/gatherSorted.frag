@@ -1,13 +1,16 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: preparedTex=0 rankTex=1 brightestTex=2
 // NM_OUTPUT: fragColor
+#define preparedTex sTD2DInputs[0]
+#define rankTex sTD2DInputs[1]
+#define brightestTex sTD2DInputs[2]
 // GPGPU Pass 4: Gather sorted pixels with alignment
 // Input: prepared texture (original colors), rank texture, brightest texture
 // Output: Sorted row with brightest pixel aligned to its original position
 // Uses approximate rank matching for efficiency
 
-uniform sampler2D preparedTex;  // Original rotated/prepared image
-uniform sampler2D rankTex;      // R = rank (approx), G = luminance, B = original x
-uniform sampler2D brightestTex; // R = brightest x per row
+
+
+
 
 out vec4 fragColor;
 

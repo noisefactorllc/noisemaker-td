@@ -1,12 +1,16 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2 fieldTex=3
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA
+#define xyzTex sTD2DInputs[0]
+#define velTex sTD2DInputs[1]
+#define rgbaTex sTD2DInputs[2]
+#define fieldTex sTD2DInputs[3]
 // Agent update pass - samples pre-convolved U field
 // Much faster than O(n²) as field is already computed
 
-uniform sampler2D xyzTex;     // Particle positions
-uniform sampler2D velTex;     // Particle velocities
-uniform sampler2D rgbaTex;    // Particle colors
-uniform sampler2D fieldTex;   // Pre-convolved U field (from convolve pass)
+
+
+
+
 
 uniform vec2 resolution;
 

@@ -94,12 +94,16 @@ class TDBackend:
         self.tex_top = {}                          # texId -> producing TOP
         self.ops = []                              # everything we created (for teardown)
         self.warnings = []
+        self._default_in = None                    # lazily-built 1x1 black TOP for 'none' inputs
+        self._back_edges = {}                      # feedback texId -> Feedback TOP
+        self.has_feedback = False                  # graph has a cross-frame cycle (drive N frames)
 
     # -- public ------------------------------------------------------------
     def build(self, graph):
         """Build the whole network for `graph`; return the TOP to present (renderSurface)."""
         if not _in_td():
             raise RuntimeError('TDBackend.build() must run inside TouchDesigner (no op API found).')
+        self._detect_back_edges(graph)
         for p in graph.passes:
             if p.is_blit:
                 self._build_blit(p, graph)
@@ -107,7 +111,34 @@ class TDBackend:
                 self._warn('points pass %s skipped (Phase 5.5: Geo COMP + GLSL MAT + Render TOP)' % p.id)
             else:
                 self._build_effect(p, graph)
+        # Wire each Feedback TOP's Target to the pass that writes the back-edge texId (the producer
+        # is built after the consumer, so this can only happen now). Output = producer's PREVIOUS
+        # frame, which breaks the cycle and gives the reference's cross-frame accumulation.
+        for tid, fb in self._back_edges.items():
+            writer = self.tex_top.get(tid)
+            if fb is None:
+                continue
+            if writer is not None:
+                _try(lambda fb=fb, writer=writer: setattr(fb.par, 'top', writer))
+            else:
+                self._warn('feedback back-edge %s has no producer to target' % tid)
         return self._present_top(graph)
+
+    def _detect_back_edges(self, graph):
+        """A texId consumed by an earlier pass than the one that produces it is a feedback
+        back-edge (e.g. `feedback`'s selfTex: read by the blend pass, written by the copy pass).
+        Such reads must come from a Feedback TOP (1-frame delay) or the cook graph would cycle."""
+        first_write = {}
+        for i, p in enumerate(graph.passes):
+            for tid in p.outputs.values():
+                first_write.setdefault(tid, i)
+        self._back_edges = {}                  # texId -> Feedback TOP (created lazily on first read)
+        for i, p in enumerate(graph.passes):
+            for tid in p.inputs.values():
+                j = first_write.get(tid)
+                if j is not None and j > i:
+                    self._back_edges.setdefault(tid, None)
+        self.has_feedback = bool(self._back_edges)
 
     def teardown(self):
         for o in self.ops:
@@ -129,7 +160,13 @@ class TDBackend:
         input_order = _parse_input_order(frag)
 
         # define overrides injected ABOVE the source; the frag's `#ifndef` fallbacks defer to them.
-        header = ''.join('#define %s %s\n' % (k, _glsl_lit(v)) for k, v in p.defines.items())
+        # Boolean-typed defines (fallback `#define K true|false`) MUST be injected as true/false:
+        # the reference emits `1`/`0` and leans on WebGL2/ANGLE accepting `if (1)`, but TD's strict
+        # #version 460 core rejects a non-bool `if` condition (the curl `if (RIDGES)` compile error).
+        bool_keys = _bool_define_keys(frag)
+        header = ''.join(
+            '#define %s %s\n' % (k, ('true' if _truthy(v) else 'false') if k in bool_keys else _glsl_lit(v))
+            for k, v in p.defines.items())
         dat = self.parent.create(_td('textDAT'), _safe_name(p.id) + '_src')
         dat.text = header + frag
         self.ops.append(dat)
@@ -163,15 +200,20 @@ class TDBackend:
         declared = uniform_binder.declared_uniform_names(frag)
         uniform_binder.bind_uniforms(g, {k: v for k, v in merged.items() if k in declared})
 
-        # wire inputs in NM_INPUTS order.
+        # wire inputs in NM_INPUTS order. A declared sampler with no/`none` texId binds the default
+        # 1x1 black TOP — reference parity (unbound samplers read [0,0,0,0]) AND it makes TD declare
+        # the sTD2DInputs array, which a filter-as-generator (e.g. subdivide, used with no input)
+        # still references -> otherwise 'sTD2DInputs : undeclared identifier'.
         for idx, sampler in enumerate(input_order):
             tex_id = p.inputs.get(sampler)
             if not tex_id or tex_id == 'none':
-                continue
-            src = self._resolve_read(tex_id)
-            if src is None:
-                self._warn('pass %s input %s -> unresolved texId %s' % (p.id, sampler, tex_id))
-                continue
+                src = self._default_input_top()
+            else:
+                src = self._resolve_read(tex_id)
+                if src is None:
+                    self._warn('pass %s input %s -> unresolved texId %s (bound default black)' % (
+                        p.id, sampler, tex_id))
+                    src = self._default_input_top()
             _try(lambda src=src, idx=idx: g.inputConnectors[idx].connect(src))
 
         # register outputs (primary first). MRT extra buffers map to the same TOP for now.
@@ -180,6 +222,19 @@ class TDBackend:
             if self.surfaces is not None:
                 self.surfaces.note_write(tex_id, g)
         return g
+
+    def _default_input_top(self):
+        """A 1x1 transparent-black (0,0,0,0) Constant TOP, matching the reference's default texture
+        for unbound/'none' inputs (webgl2.js binds a 1x1 RGBA [0,0,0,0]). Built once, shared."""
+        if self._default_in is None:
+            c = self.parent.create(_td('constantTOP'), 'nm_default_in')
+            self.ops.append(c)
+            _try(lambda: setattr(c.par, 'outputresolution', 'custom'))
+            for par, val in (('resolutionw', 1), ('resolutionh', 1),
+                             ('colorr', 0), ('colorg', 0), ('colorb', 0), ('alpha', 0)):
+                _try(lambda p=par, v=val: setattr(c.par, p, v))
+            self._default_in = c
+        return self._default_in
 
     # -- blit pass ---------------------------------------------------------
     def _build_blit(self, p, graph):
@@ -199,7 +254,15 @@ class TDBackend:
 
     # -- helpers -----------------------------------------------------------
     def _resolve_read(self, tex_id):
-        """texId -> the TOP to read it from. Global surfaces may route through feedback."""
+        """texId -> the TOP to read it from. A feedback back-edge resolves to a (lazily created)
+        Feedback TOP; global surfaces may route through the surface manager."""
+        if tex_id in self._back_edges:
+            fb = self._back_edges[tex_id]
+            if fb is None:
+                fb = self.parent.create(_td('feedbackTOP'), _safe_name(tex_id) + '_fb')
+                self.ops.append(fb)
+                self._back_edges[tex_id] = fb
+            return fb
         if self.surfaces is not None:
             t = self.surfaces.read_top(tex_id)
             if t is not None:
@@ -223,7 +286,7 @@ class TDBackend:
         _try(lambda: setattr(g.par, 'resolutionw', int(w)))
         _try(lambda: setattr(g.par, 'resolutionh', int(h)))
         _try(lambda: setattr(g.par, 'format', fmt))
-        _set_clamp(g)
+        _match_reference_sampling(g)
 
     def _present_top(self, graph):
         if graph.render_surface:
@@ -251,6 +314,21 @@ def _glsl_lit(v):
     return str(v)
 
 
+_BOOL_DEFINE_RE = re.compile(r'#define\s+(\w+)\s+(?:true|false)\b')
+
+
+def _bool_define_keys(frag_text):
+    """Keys whose in-shader `#ifndef`/`#define K true|false` fallback declares a GLSL bool. These
+    must be injected as true/false (not 1/0) so a strict-core `if (K)` condition stays a bool."""
+    return set(_BOOL_DEFINE_RE.findall(frag_text))
+
+
+def _truthy(v):
+    if isinstance(v, str):
+        return v.strip().lower() not in ('0', 'false', '', 'none')
+    return bool(v)
+
+
 def _try(fn):
     try:
         fn()
@@ -258,8 +336,18 @@ def _try(fn):
         pass
 
 
-def _set_clamp(top):
-    """Match the reference's universal CLAMP_TO_EDGE (reference webgl2 texParameteri) so border
-    sampling (e.g. blur) agrees. The GLSL TOP's `inputextenduv` defaults to "zero" (transparent
-    edge — wrong); set it to "hold" (clamp). Menu: hold|zero|repeat|mirror."""
+def _match_reference_sampling(top):
+    """Make a GLSL TOP sample its inputs exactly like the reference WebGL2 backend, which creates
+    every intermediate *surface* render target with NEAREST min/mag + CLAMP_TO_EDGE
+    (`webgl2.js` texParameteri; the WebGPU backend mirrors it: "surface inputs sample NEAREST").
+
+    Two TD defaults are wrong for this:
+      - `inputextenduv` defaults to "zero" (transparent edge) -> set "hold" (= CLAMP_TO_EDGE).
+        Menu: hold|zero|repeat|mirror. (Was the blur border-ring bug.)
+      - `inputfiltertype` ("Input Smoothness") defaults to "linear" (Interpolate Pixels) -> set
+        "nearest" (= NEAREST). 1:1 effects are unaffected (nearest == linear at texel centers),
+        but anything that resamples at warped/fractional coords (polar, pinch, distortion, uvRemap,
+        chromaticAberration, bloom upsample, ...) needs NEAREST to match the golden.
+    """
     _try(lambda: setattr(top.par, 'inputextenduv', 'hold'))
+    _try(lambda: setattr(top.par, 'inputfiltertype', 'nearest'))

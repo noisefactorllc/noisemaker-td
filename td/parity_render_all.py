@@ -47,6 +47,57 @@ def log(m):
         pass
 
 
+def _shader_errors(ops):
+    """Collect compile errors from every op the backend built. The Output is a null TOP whose
+    .errors() stays empty even when an upstream GLSL TOP fails to compile (and shows TD's red/blue
+    placeholder), so the per-effect render line would falsely read OK without this. We walk the
+    backend's own op list (not findChildren, whose depth semantics dropped the direct children)."""
+    found = []
+    try:
+        for c in ops:
+            try:
+                err = (c.errors() or '') if hasattr(c, 'errors') else ''
+            except Exception:
+                err = ''
+            if err:
+                found.append('%s(%s) errors=%s' % (c.name, c.type, ' '.join(err.split())[:240]))
+            # A GLSL TOP reports a *compile* failure only as a warning ("...has compile errors, use
+            # Info DAT"); the actual error line lives in the Info DAT. Only dig there on that signal,
+            # so a clean compile stays silent (no false ERR).
+            if c.type in ('glsl', 'glslmulti'):
+                try:
+                    warn = (c.warnings() or '') if hasattr(c, 'warnings') else ''
+                except Exception:
+                    warn = ''
+                if 'compile error' in warn.lower():
+                    found.append('%s(%s) compile=%s' % (c.name, c.type, _glsl_compile_log(c)))
+    except Exception:
+        found.append('shader_errors raised: ' + traceback.format_exc().splitlines()[-1])
+    return ' | '.join(found)
+
+
+def _glsl_compile_log(glsl_top):
+    """The real compile error for a GLSL TOP is only in an Info DAT (the TOP itself just warns).
+    Spin one up, read the ERROR lines, tear it down. Called only when a compile error is known."""
+    import td
+    nfo = None
+    try:
+        nfo = glsl_top.parent().create(td.infoDAT, glsl_top.name + '_nfo')
+        nfo.par.op = glsl_top.path
+        nfo.cook(force=True)
+        rows = [' '.join(c.val for c in row) for row in nfo.rows()]
+        hits = [r for r in rows if 'ERROR' in r.upper()]
+        return ' ⏎ '.join(hits or rows)[:400]
+    except Exception as e:
+        return 'info-dat failed: %s' % e
+    finally:
+        if nfo is not None:
+            try:
+                nfo.destroy()
+            except Exception:
+                pass
+
+
 def render_all():
     os.makedirs(OUT, exist_ok=True)
     try:
@@ -81,13 +132,41 @@ def render_all():
             out = nm.Output
             if out is None:
                 log('%-10s FAIL: no Output TOP   warns=%s' % (prog, warns)); continue
-            out.cook(force=True)
+            # Cross-frame feedback effects must accumulate over the SAME frame count the golden
+            # renderer used (export-and-render.mjs drives 8 frames); frame-invariant effects are
+            # unchanged by extra cooks. Each step: cook the output (consumes the Feedback TOP's
+            # stored previous-frame), then force-cook the Feedback TOPs to latch this frame's
+            # producer output as the next previous-frame.
+            backend = nm.pipeline.backend
+            frames = int(os.environ.get('NM_FRAMES', '8')) if getattr(
+                backend, 'has_feedback', False) else 1
+            fbs = [o for o in backend.ops if o.type == 'feedback'] if frames > 1 else []
+            if os.environ.get('NM_DIAG'):
+                log('  has_feedback=%s op-types=%s frames=%d' % (
+                    getattr(backend, 'has_feedback', '?'),
+                    sorted(set(o.type for o in backend.ops)), frames))
+            for step in range(frames):
+                out.cook(force=True)
+                for fb in fbs:
+                    try:
+                        fb.cook(force=True)
+                    except Exception:
+                        pass
+                if os.environ.get('NM_DIAG') and fbs:
+                    try:
+                        a = out.numpyArray()
+                        log('  frame %d out-mean=%.4f' % (step, float(a.mean())))
+                    except Exception as e:
+                        log('  frame %d mean? %s' % (step, e))
             errs = out.errors() if hasattr(out, 'errors') else ''
+            shader_errs = _shader_errors(nm.pipeline.backend.ops)   # GLSL compile errors (red/blue placeholder)
             saved = out.save(cand)
-            log('%-10s OK -> %s  (%dx%d)%s%s' % (
-                prog, os.path.basename(str(saved)), out.width, out.height,
+            log('%-10s %s -> %s  (%dx%d)%s%s%s' % (
+                prog, 'ERR' if shader_errs else 'OK',
+                os.path.basename(str(saved)), out.width, out.height,
                 ('  warns=%s' % warns) if warns else '',
-                ('  ERRORS=%s' % errs) if errs else ''))
+                ('  ERRORS=%s' % errs) if errs else '',
+                ('  SHADER=%s' % shader_errs) if shader_errs else ''))
             ok += 1
         except Exception:
             tb = traceback.format_exc().strip().splitlines()

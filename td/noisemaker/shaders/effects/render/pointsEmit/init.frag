@@ -1,8 +1,9 @@
-// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2
+// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2 inputTex=3
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA
 #define xyzTex sTD2DInputs[0]
 #define velTex sTD2DInputs[1]
 #define rgbaTex sTD2DInputs[2]
+#define inputTex sTD2DInputs[3]
 // Standard uniforms
 uniform float time;
 uniform vec2 resolution;
@@ -18,7 +19,7 @@ uniform bool resetState; // Force all agents to respawn
 
 
 
-uniform sampler2D inputTex;  // Chained input for coloring agents
+
 
 // Outputs (MRT)
 layout(location = 0) out vec4 outXYZ;

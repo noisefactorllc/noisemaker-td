@@ -1,5 +1,9 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: inputTex=0 xyzTex=1 velTex=2 rgbaTex=3
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA
+#define inputTex sTD2DInputs[0]
+#define xyzTex sTD2DInputs[1]
+#define velTex sTD2DInputs[2]
+#define rgbaTex sTD2DInputs[3]
 // Standard uniforms
 uniform vec2 resolution;
 uniform float time;
@@ -13,10 +17,10 @@ uniform float deviation;
 uniform float wander;
 
 // Input state from pipeline (from pointsEmit)
-uniform sampler2D inputTex; // Pipeline passthrough (for chainability)
-uniform sampler2D xyzTex;   // [x, y, z, alive]
-uniform sampler2D velTex;   // [vx, vy, vz, seed]
-uniform sampler2D rgbaTex;  // [r, g, b, a]
+
+
+
+
 
 // Output state (MRT)
 layout(location = 0) out vec4 outXYZ;

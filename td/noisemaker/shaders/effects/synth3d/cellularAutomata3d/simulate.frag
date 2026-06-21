@@ -1,6 +1,7 @@
-// NM_INPUTS: stateTex=0
+// NM_INPUTS: stateTex=0 seedTex=1
 // NM_OUTPUT: fragColor
 #define stateTex sTD2DInputs[0]
+#define seedTex sTD2DInputs[1]
 /*
  * 3D Cellular Automata simulation shader (GLSL)
  * Implements various 3D CA rules with Moore (26) or Von Neumann (6) neighborhoods
@@ -18,7 +19,7 @@ uniform float density;
 uniform float weight;
 uniform bool resetState;
 
-uniform sampler2D seedTex;  // 3D input volume atlas (inputTex3d)
+
 
 out vec4 fragColor;
 

@@ -1,11 +1,16 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2 trailTex=3 inputTex=4
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA
+#define xyzTex sTD2DInputs[0]
+#define velTex sTD2DInputs[1]
+#define rgbaTex sTD2DInputs[2]
+#define trailTex sTD2DInputs[3]
+#define inputTex sTD2DInputs[4]
 // Common Agent Architecture inputs
-uniform sampler2D xyzTex;      // [x, y, heading, alive] in normalized [0,1]
-uniform sampler2D velTex;      // [0, 0, age, seed]
-uniform sampler2D rgbaTex;     // [r, g, b, a]
-uniform sampler2D trailTex;    // Trail texture for sensor feedback
-uniform sampler2D inputTex;    // Input texture for field attraction
+
+
+
+
+
 
 uniform vec2 resolution;
 uniform float time;

@@ -76,9 +76,10 @@ The runtime ran for the first time and was iterated to green. Riskiest-first; al
 
 - [ ] 3.1 `dim`-driven per-TOP resolution + format across all texture specs (already wired; verify
       against `blur` pooled intermediates).
-- [ ] 3.2 `surface_manager`: complete Feedback TOP wiring for o0..o7 / state surfaces — within-frame
-      ping-pong + cross-frame persist (reference/04 §10.2/§10.6/§10.7). Tier-1 (display surfaces)
-      already works; this is for sims.
+- [~] 3.2 Feedback TOP wiring — **intra-graph back-edges DONE** (`td_backend._detect_back_edges`:
+      a texId read before it is written routes through a Feedback TOP; drives the golden frame
+      count). Global-surface o0..o7 swap + state-surface cross-frame persist
+      (reference/04 §10.2/§10.6/§10.7, `surface_manager`) still pending — for sims (Phase 5.5).
 - [ ] 3.3 `td_backend` MRT: Render Select TOP per extra color buffer (draw_buffers>1).
 - [ ] 3.4 `td_backend` points scatter (`drawMode:"points"`): Geometry COMP + GLSL MAT + Render TOP.
 - [ ] 3.5 `pipeline` live time driving for animated effects (osc2d) + host `resize`.
@@ -94,15 +95,26 @@ All eight match the reference at **SSIM ≥ 0.99998, max-diff ≤ 1** via `parit
 - [x] 4.7 `mixer/blendMode` 0.99999 (two-input)
 - [x] **Milestone:** 8/8 Tier-1 parity-pass — **`parity/run.sh all` green.**
 
-## Phase 5 — Expand coverage (templated)  ⛔ gated on Phase 4
+## Phase 5 — Expand coverage (templated)  ✅ 5.1–5.4 DONE — 71/71 single-pass PASS
 
-Per-effect: `.frag` exists; parity-gate, fix any auto-transpile miss. Order by leverage/risk:
-- [ ] 5.1 remaining `synth` (single-pass generators — highest yield).
-- [ ] 5.2 `filter` (90; many single-pass).
-- [ ] 5.3 `mixer` (14; two-input) · [ ] 5.4 `classicNoisedeck` (20).
+Per-effect: `.frag` exists; parity-gate, fix any auto-transpile miss. `parity/stage_coverage.py`
+reuses the sibling `noisemaker-godot` DSL+golden pairs (identical DSL + same reference renderer ⇒
+byte-identical goldens); `parity/sweep.sh` renders all in TD and grades with a per-effect tolerance.
+- [x] 5.1–5.4 — **71/71 single-pass** (`synth`/`filter`/`mixer`/`classicNoisedeck` + single-step
+      `feedback`): 65 strict (SSIM ≥ 0.99998, max-diff ≤ 1) + 6 SSIM-gated discontinuity effects
+      (`newton`/`shadow`/`edge`/`crt`/`uvRemap`/`distortion`, mirroring the godot tolerance table).
+      Five builder/transpiler fixes found by gating: **(a)** GLSL TOP `inputfiltertype='nearest'`
+      (reference samples surfaces NEAREST; fixed a 10-effect warp cluster); **(b)** boolean
+      `#define` injection as `true`/`false` (strict `#version 460` rejects `if (1)` — `curl`);
+      **(c)** 1×1 black Constant TOP for `'none'`/unbound inputs (`subdivide` sTD2DInputs); **(d)**
+      transpiler sampler/output regex tolerates a trailing `// comment` (`feedback` black samplers);
+      **(e)** back-edge → **Feedback TOP** wiring + N-frame cook (`feedback`). The harness now also
+      surfaces GLSL compile errors via an Info DAT (`parity_render_all._shader_errors`).
 - [ ] 5.5 the **21 MRT/points/3D** programs — finish by hand (agents: MRT state + points deposit +
       diffuse; 3D: volume atlas + raymarch + geoOut). Hardest; loosen tolerance for chaotic sims.
-- [ ] Track coverage in README; **log** any effect skipped/over-tolerance — never silently.
+      Also validate multi-frame feedback *accumulation* here (the back-edge wiring exists; the
+      single-step `feedback` golden is ~passthrough so accumulation isn't yet stress-tested).
+- [x] Coverage tracked in README; per-effect tolerances + rationale live in `parity/sweep.sh`.
 
 ## Phase 6 — Live TD-Python DSL compiler (staged)  ⛔ gated on Phase 4
 

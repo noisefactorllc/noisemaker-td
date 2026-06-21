@@ -72,21 +72,29 @@ NM_REFERENCE_ROOT=../noisemaker node tools/convert-shaders.mjs
 NM_REFERENCE_ROOT=../noisemaker node tools/export-graph.mjs --file parity/programs/solid.dsl parity/out/solid.graph.json
 ```
 
-## Parity — ✅ 8/8 Tier-1 PASS
+## Parity — ✅ 71/71 single-pass PASS
 
 ```bash
-parity/run.sh all          # all 8 Tier-1   →  8/8 PASS
-parity/run.sh solid        # one program
+parity/sweep.sh            # stage 71 DSL+golden pairs, render all in TD, grade → 71/71 PASS
+parity/sweep.sh --compare-only   # re-grade existing candidates (no TD render)
+parity/run.sh solid        # render+diff one program (or a "a b c" batch) at a uniform tolerance
 ```
 `run.sh` builds a bootstrap `.toe` (`td/build_parity_toe.py`), launches TouchDesigner to render
 the candidates (`td/parity_render_all.py`), and diffs each against the reference golden
-(`parity/compare.py`, via `parity/.venv`). **All 8 Tier-1 effects match at SSIM ≥ 0.99998,
-max-diff ≤ 1** (target was SSIM ≥ 0.98, max-diff ≤ 1–2/255; cross-device bit-exactness is
-impossible — MoltenVK/Metal vs ANGLE/WebGL2). This validates the transpiler, runtime, uniform
-feed, the no-Y-flip thesis, time, multi-pass (`blur`) and two-input (`blendMode`) paths.
+(`parity/compare.py`, via `parity/.venv`). `sweep.sh` stages every reusable DSL+golden pair from
+the sibling `noisemaker-godot` port (`stage_coverage.py` — identical DSL + same reference WebGL2
+renderer ⇒ byte-identical goldens), renders them all, and grades with a **per-effect tolerance**.
 
-TouchDesigner has no headless startup hook, so the bring-up runs via an Execute DAT inside a
-`.toe` (authored offline with `toeexpand`/`toecollapse`); see `docs/TD-PLATFORM-NOTES.md`.
+**All 71 single-pass effects pass** — 65 at the strict gate (SSIM ≥ 0.99998, max-diff ≤ 1) and 6
+discontinuity-heavy effects (`newton`, `shadow`, `edge`, `crt`, `uvRemap`, `distortion`) gated on
+structural **SSIM ≥ 0.98** (a few pixels at fractal basins / `step()` thresholds / NEAREST coord
+tie-breaks can't be bit-exact cross-device — MoltenVK/Metal vs ANGLE/WebGL2; same set the godot
+port relaxes, with the same physics). This validates the transpiler, runtime, uniform feed, the
+no-Y-flip thesis, **NEAREST input sampling**, time, multi-pass (`blur`), two-input (`blendMode`),
+and the **feedback back-edge → Feedback TOP** path.
+
+TouchDesigner has no headless startup hook, so rendering runs via an Execute DAT inside a `.toe`
+(authored offline with `toeexpand`/`toecollapse`); see `docs/TD-PLATFORM-NOTES.md`.
 
 ## ⚠ Prerequisites
 
@@ -110,10 +118,13 @@ no further manual steps.
 | classicNoisedeck | 20 | auto |
 | **total** | **182** | **247 programs — 226 auto-transpiled, 21 MRT flagged** |
 
-Status: scaffold + tooling + runtime + generated assets complete; **8/8 Tier-1 effects
-pixel-parity-validated** in TouchDesigner. Next: expand single-pass `synth`/`filter`/`mixer`/
-`classicNoisedeck` coverage (auto-transpiled `.frag` already generated — gate each), then the 21
-MRT/points/3D programs and the live Python DSL compiler. See `docs/IMPLEMENTATION-PLAN.md`.
+Status: scaffold + tooling + runtime + generated assets complete; **71/71 single-pass effects
+pixel-parity-validated** in TouchDesigner (every `synth`/`filter`/`mixer`/`classicNoisedeck`
+effect the sibling ports cover, plus single-step `feedback`). Next: the **21 MRT/points/3D**
+programs (Phase 5.5 — Render Select TOPs, points scatter via Geometry COMP + GLSL MAT, 3D volume
+atlases) and the **live Python DSL compiler** (Phase 6). The Feedback-TOP back-edge wiring is in
+place; multi-frame *accumulation* (trails/reaction-diffusion) is exercised in Phase 5.5. See
+`docs/IMPLEMENTATION-PLAN.md`.
 
 ## License
 

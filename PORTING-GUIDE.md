@@ -26,7 +26,9 @@ For each `effects/<ns>/<name>/glsl/<prog>.glsl` → `td/noisemaker/shaders/effec
    `#define <name> sTD2DInputs[i]`. A machine-readable header `// NM_INPUTS: <name>=i …` records the
    order; the network builder (`td_backend.py`) wires TOP inputs to match it. So `texture(inputTex, uv)`
    and `textureSize(inputTex,0)` keep working verbatim. (`blendMode`: `inputTex=0 tex=1`.) Effects with
-   >3 inputs build on the **GLSL Multi TOP**, which lifts the 3-input cap.
+   >3 inputs build on the **GLSL Multi TOP**, which lifts the 3-input cap. The declaration regex
+   tolerates a **trailing `// comment`** after the `;` — without it, `feedback`'s commented
+   `uniform sampler2D selfTex;   // …` were missed and left as unbound samplers reading black.
 
 3. **Output → `TDOutputSwizzle`.** A single `out vec4 <name>;` (almost always `fragColor`) is kept;
    the effect's `main` is renamed `nm_main`, and a wrapper is appended:
@@ -92,6 +94,10 @@ The builder feeds them via the GLSL TOP **Vectors** page from Python (`uniform_b
 | int/bool uniform packing | **RESOLVED** — bind as floats on the Vectors page; the `vec` count must be set first (see Uniform contract). |
 | Coordinate convention (`globalCoord = gl_FragCoord.xy + tileOffset`, `st = …/fullResolution.y`) | Preserved verbatim; correct (Y-origin confirmed). |
 | Texture edge sampling | **RESOLVED** — set GLSL TOP `inputextenduv = 'hold'` (clamp) to match the reference's `CLAMP_TO_EDGE`; TD defaults to `'zero'` (the `blur` border-ring bug). |
+| Texture **filtering** (NEAREST vs linear) | **RESOLVED** — set GLSL TOP `inputfiltertype = 'nearest'`. The reference creates every intermediate *surface* with `NEAREST` min/mag (`webgl2.js` texParameteri; WebGPU mirrors it). TD defaults to linear ("Interpolate Pixels"). Identical for 1:1 effects (sample lands on a texel centre) but **every warp/resample** (`polar`, `pinch`, `distortion`, `uvRemap`, `chromaticAberration`, bloom upsample, …) diverges under linear — was a 10-effect cluster of small broad diffs. |
+| Boolean `#define` injection | **RESOLVED** — a define whose in-shader `#ifndef` fallback is `true`/`false` (e.g. `RIDGES`) is injected as `true`/`false`, not `1`/`0`. The reference emits `1` and relies on WebGL2/ANGLE accepting `if (1)`; TD's strict `#version 460` core rejects a non-bool `if` condition (the `curl` compile error → red/blue placeholder). |
+| `'none'` / unbound input sampler | **RESOLVED** — wired to a 1×1 transparent-black Constant TOP (reference binds a 1×1 `[0,0,0,0]`). Also makes TD declare `sTD2DInputs` for a filter-as-generator used with no input (`subdivide`: `'sTD2DInputs' : undeclared identifier`). |
+| Feedback / cross-frame (`feedback`'s `selfTex`) | **WIRED** — a texId read by an earlier pass than the one that writes it is a back-edge; the read routes through a **Feedback TOP** (Target = the producer) to break the cook cycle, and the renderer drives the golden's frame count (8). Single-step `feedback` matches; multi-frame *accumulation* (trails/sims) is Phase 5.5. |
 | Texture format / sRGB | Linear only (`rgba16f`→16-bit float RGBA, never sRGB), set per-TOP by the builder. |
 | Cross-device float (MoltenVK/Metal vs ANGLE) | Inherent; absorbed by the SSIM≥0.98 / max-diff≤2 tolerance, same as the sibling ports. |
 

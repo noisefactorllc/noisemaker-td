@@ -1,6 +1,7 @@
-// NM_INPUTS: stateTex=0
+// NM_INPUTS: stateTex=0 seedTex=1
 // NM_OUTPUT: fragColor
 #define stateTex sTD2DInputs[0]
+#define seedTex sTD2DInputs[1]
 /*
  * 3D Reaction-Diffusion simulation shader (GLSL)
  * Implements Gray-Scott model in 3D with 6-neighbor Laplacian
@@ -21,7 +22,7 @@ uniform int colorMode;
 uniform float weight;
 uniform bool resetState;
 
-uniform sampler2D seedTex;  // 3D input volume atlas (inputTex3d)
+
 
 out vec4 fragColor;
 

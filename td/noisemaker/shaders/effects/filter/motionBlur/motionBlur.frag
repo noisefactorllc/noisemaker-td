@@ -1,5 +1,7 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: inputTex=0 selfTex=1
 // NM_OUTPUT: fragColor
+#define inputTex sTD2DInputs[0]
+#define selfTex sTD2DInputs[1]
 /*
  * Motion Blur - Simple frame blending shader.
  * Mixes current input with previous frame for a motion blur effect.
@@ -7,8 +9,8 @@
  */
 
 
-uniform sampler2D inputTex;   // Live input from previous effect
-uniform sampler2D selfTex;    // Feedback buffer (previous frame output)
+
+
 uniform vec2 resolution;
 uniform float amount;
 uniform bool resetState;

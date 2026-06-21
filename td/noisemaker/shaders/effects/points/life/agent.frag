@@ -1,5 +1,11 @@
-// NM_INPUTS: (none)
+// NM_INPUTS: xyzTex=0 velTex=1 rgbaTex=2 dataTex=3 forceMatrix=4 inputTex=5
 // NM_OUTPUT: MRT outXYZ,outVel,outRGBA,outData
+#define xyzTex sTD2DInputs[0]
+#define velTex sTD2DInputs[1]
+#define rgbaTex sTD2DInputs[2]
+#define dataTex sTD2DInputs[3]
+#define forceMatrix sTD2DInputs[4]
+#define inputTex sTD2DInputs[5]
 // Particle Life agent pass - Common Agent Architecture middleware
 // Combined force evaluation + integration in single pass
 // Reads from global_xyz/vel/rgba + internal data, writes back all 4
@@ -23,12 +29,12 @@ uniform bool symmetricForces;
 uniform bool useTypeColor;
 
 // Input state from pipeline (from pointsEmit)
-uniform sampler2D xyzTex;      // [x, y, 0, alive] - normalized coords
-uniform sampler2D velTex;      // [vx, vy, age, seed]
-uniform sampler2D rgbaTex;     // [r, g, b, a]
-uniform sampler2D dataTex;     // [typeId, mass, 0, 0] - internal
-uniform sampler2D forceMatrix; // [strength, prefDist, curveShape, 1]
-uniform sampler2D inputTex;    // Source texture for color sampling
+
+
+
+
+
+
 
 // Output state (MRT with 4 outputs)
 layout(location = 0) out vec4 outXYZ;
