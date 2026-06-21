@@ -99,6 +99,8 @@ class TDBackend:
         self._feedback = {}                        # cross-frame texId -> Feedback TOP (lazy)
         self._effect_uniforms = []                 # [(glslTOP, {declared uniform: value})] for set_time
         self._prog_tops = {}                       # progName -> [TOPs] (debug: dump a specific pass)
+        self._mrt_diag_done = False                 # one-time Render Select param introspection log
+        self._tex_res = {}                          # texId -> (w,h) resolved (for feedback sizing)
         self.has_feedback = False                  # graph has a cross-frame cycle (drive N frames)
 
     # -- public ------------------------------------------------------------
@@ -138,8 +140,10 @@ class TDBackend:
                 spec = graph.spec_for(tid)
                 fmt = FORMAT_MAP.get(spec.fmt, 'rgba16float') if spec is not None else 'rgba16float'
                 try:
-                    rw = int(writer.par.resolutionw.eval())
-                    rh = int(writer.par.resolutionh.eval())
+                    rw, rh = self._tex_res.get(tid, (None, None))
+                    if rw is None:
+                        rw = int(writer.par.resolutionw.eval())
+                        rh = int(writer.par.resolutionh.eval())
                     # A bare Feedback TOP (no input) ignores its custom-resolution param and cooks at
                     # a 128 default — so the FIRST-frame state (and textureSize seen by the consumer)
                     # is the wrong size, corrupting any seed/init that keys off textureSize(bufTex).
@@ -245,11 +249,10 @@ class TDBackend:
         spec = self._primary_output_spec(p, graph)
         self._apply_res_format(g, spec, p.uniforms)
 
-        # MRT
+        # MRT: render to N color buffers (the shader's layout(location=k)); each is read back via
+        # its own Render Select TOP (registered in the output step below).
         if p.is_mrt:
-            n = p.draw_buffers or len(p.outputs)
-            _try(lambda: setattr(g.par, 'numcolorbufs', n))
-            self._warn('MRT pass %s (%d buffers): extra buffers need Render Select TOPs (Phase 5.5)' % (p.id, n))
+            _try(lambda: setattr(g.par, 'numcolorbufs', p.draw_buffers or len(p.outputs)))
 
         # NB: `repeat` is handled by UNROLLING in build() (N chained TOPs), not the Passes param.
 
@@ -282,12 +285,38 @@ class TDBackend:
                     src = self._default_input_top()
             _try(lambda src=src, idx=idx: g.inputConnectors[idx].connect(src))
 
-        # register outputs (primary first). MRT extra buffers map to the same TOP for now.
-        for attach, tex_id in p.outputs.items():
-            self.tex_top[tex_id] = g
-            if self.surfaces is not None:
-                self.surfaces.note_write(tex_id, g)
+        # record the (resolved) render resolution per output texId — the producing GLSL TOP carries
+        # it; a Render Select / feedback can't always report it, so we cache it for feedback sizing.
+        try:
+            _res = (int(g.par.resolutionw.eval()), int(g.par.resolutionh.eval()))
+        except Exception:
+            _res = (self.width, self.height)
+        for _tid in p.outputs.values():
+            self._tex_res[_tid] = _res
+
+        # register outputs. MRT: each attachment is a distinct color buffer reached through a Render
+        # Select TOP — the Select (not the GLSL TOP) is the readable producer for that texId.
+        if p.is_mrt and len(p.outputs) > 1:
+            for idx, (attach, tex_id) in enumerate(p.outputs.items()):
+                self.tex_top[tex_id] = self._register_mrt_buffer(g, idx, tex_id, tag)
+                if self.surfaces is not None:
+                    self.surfaces.note_write(tex_id, self.tex_top[tex_id])
+        else:
+            for attach, tex_id in p.outputs.items():
+                self.tex_top[tex_id] = g
+                if self.surfaces is not None:
+                    self.surfaces.note_write(tex_id, g)
         return g
+
+    def _register_mrt_buffer(self, glsl_top, idx, tex_id, tag):
+        """A Render Select TOP that exposes color-buffer `idx` of an MRT GLSL TOP as a readable TOP.
+        TD's Render Select reads its source from the `top` PARAM (not an input wire) and picks the
+        attachment with `bufferindex`."""
+        sel = self.parent.create(_td('renderselectTOP'), '%s_b%d' % (tag, idx))
+        self.ops.append(sel)
+        _try(lambda: setattr(sel.par, 'top', glsl_top))
+        _try(lambda: setattr(sel.par, 'bufferindex', idx))
+        return sel
 
     def _default_input_top(self):
         """A 1x1 transparent-black (0,0,0,0) Constant TOP, matching the reference's default texture
