@@ -139,15 +139,21 @@ texture); `render3d` / `renderLit3d` then raymarch it. Two TD-specific fixes (bo
    `NM_MAX_VOLUME_SIZE` on a Commercial/Educational license (which has no 1280 cap).
 
 Isolation harness: `parity/evolve.sh <prog>` with `NM_DUMP_PROG=<prog>` and `NM_DUMP_TEXID=<texId>`.
-**Still TODO** (each a distinct, pinned cause — not the core render path, which works):
-- **renderCubemap3d / renderCubemapSurface** — compile + run, but render wrong (ssim 0.24). Cause:
-  the single cube-face camera uses `uniform mat3 cubeBasis`, and `uniform_binder._as_components`
-  truncates any list to 4 floats and binds it on the GLSL TOP **Vectors** page — a `mat3` needs the
-  **Matrices** page (or a Constant-CHOP/DAT-fed matrix), so `cubeBasis` stays a degenerate default →
-  wrong rays. Fix = mat3/mat4 uniform binding in `uniform_binder` (a general capability gap; cubeBasis
-  is the only catalog user).
+
+**mat3 cubeBasis — RESOLVED (renderCubemap3d + renderCubemapSurface now max-diff 1, ssim ~1.0).**
+Both cube-face renderers steer rays with `uniform mat3 cubeBasis`, and the old
+`uniform_binder._as_components` truncated any list to 4 floats onto the GLSL TOP **Vectors** page —
+a `mat3` (9 floats) can't live there, so `cubeBasis` stayed the TD default (the **zero** matrix →
+`normalize(0)` = NaN → degenerate). TD binds a matrix uniform from the **Matrices** page instead:
+`g.par.matrix` (count), `matrix{i}name`, and `matrix{i}value` ← **a Table DAT**. The table→GLSL
+mapping and the reference's column-major flat-array convention were pinned by a known-answer probe
+(`td/matrix_probe.py`): TD reads table row r as GLSL row r, so the binder transposes —
+`table[r][c] = flat[order*c + r]` — making GLSL column k == the reference column k. `uniform_binder`
+now routes any 9- or 16-element value (mat3/mat4) to `_bind_matrices` (a reused per-slot Table DAT,
+so set_time re-binds cleanly); cubeBasis is the only catalog user today, but mat4 is handled too.
+
+**Still TODO** (one distinct, pinned cause — not the core render path, which works):
 - **filter3d flow3d** — a stateful 3D agent-flow filter (MRT, multi-pass; `agent.frag` 3-buffer state).
-- **filter3d palette3d** — no transpiled `.frag` yet (only the JSON); needs re-transpile.
 
 The classicNoisedeck `noise3d`/`shapes3d` are 2D effects (`search classicNoisedeck`), not the synth3d
 volume path.

@@ -42,6 +42,22 @@ def _as_components(value):
     return None
 
 
+def _matrix_order(value):
+    """3 for a 9-element mat3 flat list, 4 for a 16-element mat4, else 0 (not a matrix).
+
+    The Vectors page only carries 1–4 floats, so a `uniform mat3`/`mat4` (e.g. renderCubemap3d's
+    `cubeBasis`) must take the Matrices page instead. Matrix uniform VALUES are the only ones with
+    9 or 16 components (vecs/colors are ≤4, scalars are 1), so length alone classifies them — which
+    also lets set_time() re-bind without re-parsing the shader."""
+    if isinstance(value, (list, tuple)) and not isinstance(value, str):
+        n = len(value)
+        if n == 9:
+            return 3
+        if n == 16:
+            return 4
+    return 0
+
+
 def bind_uniforms(glsl_top, values):
     """Bind {uniformName: value} onto `glsl_top`'s Vectors page.
 
@@ -50,7 +66,12 @@ def bind_uniforms(glsl_top, values):
     Uniforms bind by name, not slot position. Pass only the uniforms the shader declares.
     """
     items = []
+    matrices = []                                  # (name, order, flat) for the Matrices page
     for name, value in values.items():
+        order = _matrix_order(value)
+        if order:
+            matrices.append((name, order, [float(x) for x in value]))
+            continue
         comps = _as_components(value)
         if comps is not None:
             items.append((name, comps))
@@ -65,7 +86,44 @@ def bind_uniforms(glsl_top, values):
                 setattr(glsl_top.par, 'vec%d%s' % (slot, VEC_COMPONENTS[i]), comp)
         except Exception as exc:  # noqa: BLE001 — surface, don't abort the whole build
             _warn('uniform %r slot %d: %s' % (name, slot, exc))
+    _bind_matrices(glsl_top, matrices)
     return len(items)
+
+
+def _bind_matrices(glsl_top, matrices):
+    """Bind mat3/mat4 uniforms onto the GLSL TOP's **Matrices** page.
+
+    A matrix uniform's value comes from a Table DAT (`matrix{i}value`), not float params. The
+    reference feeds these flat arrays COLUMN-major (WebGL `uniformMatrix*fv` is transpose-false),
+    and TD reads table row r as GLSL matrix row r (probed: td/matrix_probe.py), so we transpose on
+    the way in — table[r][c] = flat[order*c + r] — making GLSL column k == the reference's column k.
+    Idempotent: the per-slot Table DAT is reused (and refilled) across set_time re-binds."""
+    if not matrices:
+        return
+    try:
+        setattr(glsl_top.par, 'matrix', len(matrices))   # materialize matrix slots
+    except Exception as exc:
+        _warn('set matrix count=%d: %s' % (len(matrices), exc))
+        return
+    parent = glsl_top.parent()
+    for slot, (name, order, flat) in enumerate(matrices):
+        try:
+            dat = _matrix_table(glsl_top, parent, slot, order, flat)
+            setattr(glsl_top.par, 'matrix%dname' % slot, name)
+            setattr(glsl_top.par, 'matrix%dvalue' % slot, dat)
+        except Exception as exc:  # noqa: BLE001
+            _warn('matrix %r slot %d: %s' % (name, slot, exc))
+
+
+def _matrix_table(glsl_top, parent, slot, order, flat):
+    """Reuse-or-create the `<top>_mtxN` Table DAT and fill it with the transposed matrix."""
+    import td
+    dat_name = '%s_mtx%d' % (glsl_top.name, slot)
+    dat = parent.op(dat_name) or parent.create(td.tableDAT, dat_name)
+    dat.clear()
+    for r in range(order):
+        dat.appendRow([repr(flat[order * c + r]) for c in range(order)])
+    return dat
 
 
 def _warn(msg):

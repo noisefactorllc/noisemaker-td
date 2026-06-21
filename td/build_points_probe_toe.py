@@ -17,8 +17,10 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TD_DIR = os.path.join(REPO, 'td')
-PROBE = os.path.join(TD_DIR, 'points_probe.py')
-OUT_TOE = os.path.join(TD_DIR, 'nm_points_probe.toe')
+# The probe script + output .toe default to the point-scatter probe, but can be retargeted at any
+# `probe_main()` script (e.g. matrix_probe.py) via env — the .toe-authoring mechanism is generic.
+PROBE = os.environ.get('NM_PROBE_FILE') or os.path.join(TD_DIR, 'points_probe.py')
+OUT_TOE = os.environ.get('NM_PROBE_TOE') or os.path.join(TD_DIR, 'nm_points_probe.toe')
 
 TD_APP = os.environ.get('TD_APP') or next(iter(sorted(glob.glob('/Applications/TouchDesigner*.app'))), None)
 if not TD_APP:
