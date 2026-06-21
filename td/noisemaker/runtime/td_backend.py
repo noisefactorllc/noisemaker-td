@@ -384,8 +384,12 @@ class TDBackend:
         recovers each agent's state texel from the Grid point position (validated by points_probe).
         See docs/TD-PLATFORM-NOTES.md 'GPU point scatter'."""
         from . import deposit_shaders
-        xyz_id = p.inputs.get('xyzTex')
-        rgba_id = p.inputs.get('rgbaTex')
+        # 2D deposits name the agent-state inputs xyzTex/rgbaTex; filter3d/flow3d's volume deposit
+        # names them stateTex1/stateTex2 (position carries a 3D voxel, scattered into the trail
+        # ATLAS) — same Geo/MAT/Render mechanism, different vertex math (deposit_shaders 'points3d').
+        is_volume = 'stateTex1' in p.inputs
+        xyz_id = p.inputs.get('xyzTex') or p.inputs.get('stateTex1')
+        rgba_id = p.inputs.get('rgbaTex') or p.inputs.get('stateTex2')
         xyz = self._resolve_read(xyz_id) if xyz_id else None
         rgba = self._resolve_read(rgba_id) if rgba_id else None
         if xyz is None or rgba is None:
@@ -438,8 +442,8 @@ class TDBackend:
             for _f in ('render', 'display'):
                 _try(lambda _o=_o, _f=_f, _r=_r: setattr(_o, _f, _r))
 
-        # -- material: the deposit vertex/pixel shader --
-        vsrc, fsrc = deposit_shaders.shaders_for(p.draw_mode)
+        # -- material: the deposit vertex/pixel shader (flow3d -> 3D volume-atlas variant) --
+        vsrc, fsrc = deposit_shaders.shaders_for('points3d' if is_volume else p.draw_mode)
         mat = self.parent.create(_td('glslMAT'), tag + '_mat')
         self.ops.append(mat)
         vdat = self.parent.create(_td('textDAT'), tag + '_vert')

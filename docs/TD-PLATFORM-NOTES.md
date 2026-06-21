@@ -152,8 +152,18 @@ mapping and the reference's column-major flat-array convention were pinned by a 
 now routes any 9- or 16-element value (mat3/mat4) to `_bind_matrices` (a reused per-slot Table DAT,
 so set_time re-binds cleanly); cubeBasis is the only catalog user today, but mat4 is handled too.
 
-**Still TODO** (one distinct, pinned cause — not the core render path, which works):
-- **filter3d flow3d** — a stateful 3D agent-flow filter (MRT, multi-pass; `agent.frag` 3-buffer state).
+**filter3d flow3d — DONE (renders end-to-end, chaos-gated ssim ~0.84 at f8).** A stateful 3D
+agent-flow filter: MRT agent pass (3 state buffers, 512² agents) → diffuse → copy → **points
+deposit** → blend, output a volume atlas raymarched by `render3d`. Every piece already existed
+except the deposit: flow3d's agents carry a 3D VOLUME position (`state1.xyz`, voxel units) and
+scatter into the trail ATLAS (row = `y + floor(z)·volSize`), and its deposit pass names the
+agent-state inputs `stateTex1/stateTex2` — so the 2D `_build_points` (which only looks for
+`xyzTex/rgbaTex`) silently skipped it, leaving an empty trail → degenerate flat render. Fix:
+`deposit_shaders.points3d` (the 3D-atlas vertex math, mirroring `filter3d/flow3d/glsl/deposit.vert`;
+index-threshold cull, not the golden-ratio one) + `_build_points` resolves `stateTex1/2` and selects
+it. Chaos-gated like every agent flow (Metal vs ANGLE point-raster ULP diverges over frames).
+
+All synth3d/filter3d/render 3D effects now render; no remaining 3D TODOs.
 
 The classicNoisedeck `noise3d`/`shapes3d` are 2D effects (`search classicNoisedeck`), not the synth3d
 volume path.

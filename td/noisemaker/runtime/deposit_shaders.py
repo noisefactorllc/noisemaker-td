@@ -182,8 +182,49 @@ void main() {
 """
 
 
+# ---- filter3d/flow3d deposit: agents carry a 3D VOLUME position, scattered into a 2D atlas --------
+# Distinct from the 2D pointsRender deposit above: flow3d's agents live in a volume (state1.xyz in
+# VOXEL units [0,volSize)), and the trail is that volume stored as a 2D atlas (width=volSize,
+# height=volSize², row = y + floor(z)·volSize). The cull is the reference's index threshold
+# (maxAgents = maxDim·density·0.2), not the golden-ratio fract used by pointsRender. Mirrors
+# filter3d/flow3d/glsl/deposit.vert verbatim; only gl_VertexID -> the grid texel (xyzTex == stateTex1,
+# rgbaTex == stateTex2) changes, exactly as for the 2D deposit. See docs/TD-PLATFORM-NOTES.md.
+FLOW3D_VERT = """uniform sampler2D xyzTex;   // stateTex1: xyz = 3D voxel position
+uniform sampler2D rgbaTex;  // stateTex2: rgb = agent color
+uniform float density;
+uniform int volumeSize;
+out vec4 vColor;
+void main() {
+    ivec2 sz = textureSize(xyzTex, 0);
+    int texW = sz.x, texH = sz.y;
+    vec3 gp = TDPos();
+    int x = clamp(int(floor((gp.x * 0.5 + 0.5) * float(texW - 1) + 0.5)), 0, texW - 1);
+    int y = clamp(int(floor((gp.y * 0.5 + 0.5) * float(texH - 1) + 0.5)), 0, texH - 1);
+    int agentIndex = y * texW + x;                 // == reference gl_VertexID (texW == stateSize)
+    int maxAgents = int(float(max(texW, texH)) * density * 0.2);
+    if (agentIndex >= maxAgents) {
+        gl_Position = vec4(2.0, 2.0, 0.0, 1.0); gl_PointSize = 0.0; vColor = vec4(0.0); return;
+    }
+    vec4 state1 = texelFetch(xyzTex, ivec2(x, y), 0);
+    vec4 state2 = texelFetch(rgbaTex, ivec2(x, y), 0);
+    float volF = float(volumeSize);
+    float atlasX = state1.x;                        // voxel x in [0,volSize)
+    float atlasY = state1.y + floor(state1.z) * volF;   // atlas row = y + z·volSize
+    vec2 ndc = vec2((atlasX / volF) * 2.0 - 1.0, (atlasY / (volF * volF)) * 2.0 - 1.0);
+    gl_Position = vec4(ndc, 0.0, 1.0);
+    gl_PointSize = 1.0;
+    vColor = vec4(state2.rgb, 1.0);
+}
+"""
+
+
 def shaders_for(draw_mode):
-    """(vertex_src, fragment_src) for a deposit pass: 'points' or 'billboards'."""
+    """(vertex_src, fragment_src) for a deposit pass: 'points', 'billboards', or 'points3d'.
+
+    'points3d' is the filter3d/flow3d volume-atlas deposit (agents in voxel space); it reuses the
+    plain points fragment (straight additive color write)."""
     if draw_mode == 'billboards':
         return BILLBOARD_VERT, BILLBOARD_FRAG
+    if draw_mode == 'points3d':
+        return FLOW3D_VERT, POINTS_FRAG
     return POINTS_VERT, POINTS_FRAG
