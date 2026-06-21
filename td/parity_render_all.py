@@ -117,8 +117,15 @@ def render_all():
     ok = 0
     for prog in TIER1:
         graph = os.path.join(OUT, '%s.graph.json' % prog)
+        dsl = os.path.join(REPO, 'parity', 'programs', '%s.dsl' % prog)
         cand = os.path.join(OUT, '%s.candidate.png' % prog)
-        if not os.path.exists(graph):
+        # NM_LIVE_DSL: render via the live in-engine Polymorphic compiler (nm.set_dsl) instead of
+        # the offline golden graph JSON — validates the compiler runs in TD's embedded Python and
+        # the live path renders identically (its graph is byte-clean vs export-graph.mjs).
+        live = bool(os.environ.get('NM_LIVE_DSL'))
+        if live and not os.path.exists(dsl):
+            log('%-10s SKIP (no dsl)' % prog); continue
+        if not live and not os.path.exists(graph):
             log('%-10s SKIP (no graph json)' % prog); continue
         # fresh sub-container per effect so networks don't collide
         sub = holder.op(prog)
@@ -127,7 +134,11 @@ def render_all():
         sub = holder.create(baseCOMP, prog)
         try:
             nm = NMRenderer(sub, width=SIZE, height=SIZE)
-            nm.set_graph(graph)
+            if live:
+                with open(dsl) as _f:
+                    nm.set_dsl(_f.read())
+            else:
+                nm.set_graph(graph)
             warns = getattr(nm.pipeline.backend, 'warnings', [])
             out = nm.Output
             if out is None:

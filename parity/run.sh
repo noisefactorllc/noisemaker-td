@@ -39,7 +39,7 @@ python3 "$REPO/td/build_parity_toe.py" >/dev/null || { echo "FAIL: build_parity_
 
 # 3. render candidates in TouchDesigner (batch; the .toe renders NM_PROGRAMS then quits)
 rm -f "$OUT/_render_log.txt"; for p in $PROGS; do rm -f "$OUT/$p.candidate.png"; done
-NM_PROGRAMS="$(echo $PROGS | tr ' ' ',')" NM_SIZE="$SIZE" NM_TIME="$TIME" \
+NM_PROGRAMS="$(echo $PROGS | tr ' ' ',')" NM_SIZE="$SIZE" NM_TIME="$TIME" NM_LIVE_DSL="${NM_LIVE_DSL:-}" \
   "$TD" "$REPO/td/nm_parity.toe" >/dev/null 2>&1 &
 TDPID=$!
 for i in $(seq 1 150); do
