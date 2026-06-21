@@ -86,14 +86,15 @@ needed it is a **one-line change in one helper** (`NM_FLIP_Y`), not a 182-shader
 Golden truth = the reference's own output. For each Tier-1 program:
 `export-graph.mjs` (graph JSON) + `export-and-render.mjs` (golden PNG via the reference
 WebGL2 engine) → then the TD candidate render → `compare.py` (max-abs-diff + SSIM).
-Targets, as on the other ports: **SSIM ≥ 0.98, max-abs-diff ≤ 1–2/255** (cross-device
-bit-exactness is impossible: MoltenVK/Metal vs ANGLE/WebGL2).
+Targets, as on the other ports: SSIM ≥ 0.98, max-abs-diff ≤ 1–2/255 (cross-device
+bit-exactness is impossible: MoltenVK/Metal vs ANGLE/WebGL2). **Achieved: 8/8 Tier-1 at
+SSIM ≥ 0.99998, max-diff ≤ 1.**
 
-The TD candidate is produced **fully scripted, no GUI clicking** (Task 2.3 / `parity/render-candidate.py`):
-launch the bootstrap `.toe` → an Execute DAT builds the network from `graph.json` →
-`project.realTime = False` (deterministic, render-to-completion) → drive `uTime`
-explicitly → `op('out').save('candidate.png')` (or `TOP.numpyArray()` for in-process
-diff) → `project.quit(force=True)`.
+The TD candidate is produced **fully scripted, no GUI clicking** (`parity/run.sh`): build a
+bootstrap `.toe` (`td/build_parity_toe.py` — an Execute DAT authored offline via
+`toeexpand`/`toecollapse`, since TD has no headless startup hook), launch TD on it → the
+Execute DAT (`onStart`/`onCreate`) execs `td/parity_render_all.py` → `project.realTime = False`
+→ build each graph via the runtime → `op.save('candidate.png')` → `project.quit(force=True)`.
 
 ## Platform constraints (from research; see `docs/TD-PLATFORM-NOTES.md`)
 

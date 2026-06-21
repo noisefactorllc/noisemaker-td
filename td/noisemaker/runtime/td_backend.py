@@ -20,16 +20,28 @@ Coverage:
 import os
 import re
 
-try:
-    # These globals exist only inside TouchDesigner. Import guarded so the module is importable
-    # (for static checks) under stock python3; build() will fail loudly if run outside TD.
-    glslTOP            # noqa: F821
-    glslmultiTOP       # noqa: F821
-    nullTOP            # noqa: F821
-    textDAT            # noqa: F821
-    _IN_TD = True
-except NameError:
-    _IN_TD = False
+def _td(name):
+    """Resolve a TouchDesigner operator-type / API global (glslTOP, baseCOMP, textDAT, …).
+
+    TD injects these into DAT scopes via `from td import *`, but NOT into imported .py modules,
+    so inside this package we must fetch them from the `td` module (importable anywhere in a TD
+    process) — with a builtins fallback. Off-platform (stock python3) it raises, by design."""
+    import td as _tdmod
+    if hasattr(_tdmod, name):
+        return getattr(_tdmod, name)
+    import builtins
+    if hasattr(builtins, name):
+        return getattr(builtins, name)
+    raise NameError('TouchDesigner global %r not found' % name)
+
+
+def _in_td():
+    try:
+        import td  # noqa: F401
+        return True
+    except Exception:
+        return False
+
 
 from . import dim as _dim
 from . import uniform_binder
@@ -71,11 +83,13 @@ def _parse_input_order(frag_text):
 
 
 class TDBackend:
-    def __init__(self, parent_comp, shaders_root, *, width=256, height=256, surface_manager=None):
+    def __init__(self, parent_comp, shaders_root, *, width=256, height=256, time=0.25,
+                 surface_manager=None):
         self.parent = parent_comp
         self.shaders_root = shaders_root           # .../td/noisemaker/shaders/effects
         self.width = width
         self.height = height
+        self.time = time                           # normalized 0..1 baked into engine uniforms
         self.surfaces = surface_manager            # optional SurfaceManager for feedback
         self.tex_top = {}                          # texId -> producing TOP
         self.ops = []                              # everything we created (for teardown)
@@ -84,7 +98,7 @@ class TDBackend:
     # -- public ------------------------------------------------------------
     def build(self, graph):
         """Build the whole network for `graph`; return the TOP to present (renderSurface)."""
-        if not _IN_TD:
+        if not _in_td():
             raise RuntimeError('TDBackend.build() must run inside TouchDesigner (no op API found).')
         for p in graph.passes:
             if p.is_blit:
@@ -116,12 +130,12 @@ class TDBackend:
 
         # define overrides injected ABOVE the source; the frag's `#ifndef` fallbacks defer to them.
         header = ''.join('#define %s %s\n' % (k, _glsl_lit(v)) for k, v in p.defines.items())
-        dat = self.parent.create(textDAT, _safe_name(p.id) + '_src')
+        dat = self.parent.create(_td('textDAT'), _safe_name(p.id) + '_src')
         dat.text = header + frag
         self.ops.append(dat)
 
         n_inputs = len(input_order)
-        top_type = glslmultiTOP if n_inputs > 3 else glslTOP   # Multi lifts the 3-input cap
+        top_type = _td('glslmultiTOP') if n_inputs > 3 else _td('glslTOP')   # Multi lifts the 3-input cap
         g = self.parent.create(top_type, _safe_name(p.id))
         self.ops.append(g)
         g.par.pixeldat = dat
@@ -141,10 +155,13 @@ class TDBackend:
         if isinstance(p.repeat, int) and p.repeat > 1:
             _try(lambda: setattr(g.par, 'passes', p.repeat))
 
-        # uniforms: engine globals first, then the pass's literal uniforms.
-        eu = engine_uniforms(self.width, self.height, 0.0)
-        slot = uniform_binder.bind_uniforms(g, eu)
-        uniform_binder.bind_uniforms(g, p.uniforms, start_slot=slot)
+        # uniforms: bind ONLY what the shader declares (engine globals ∪ pass uniforms), in one
+        # pass — the binder sets the Vectors slot count. Binding undeclared names wastes slots
+        # and (pre-fix) silently truncated many-uniform effects.
+        merged = dict(engine_uniforms(self.width, self.height, self.time))
+        merged.update(p.uniforms)
+        declared = uniform_binder.declared_uniform_names(frag)
+        uniform_binder.bind_uniforms(g, {k: v for k, v in merged.items() if k in declared})
 
         # wire inputs in NM_INPUTS order.
         for idx, sampler in enumerate(input_order):
@@ -167,7 +184,7 @@ class TDBackend:
     # -- blit pass ---------------------------------------------------------
     def _build_blit(self, p, graph):
         src_id = p.inputs.get('src') or next(iter(p.inputs.values()), None)
-        n = self.parent.create(nullTOP, _safe_name(p.id))
+        n = self.parent.create(_td('nullTOP'), _safe_name(p.id))
         self.ops.append(n)
         src = self._resolve_read(src_id) if src_id else None
         if src is not None:
@@ -206,6 +223,7 @@ class TDBackend:
         _try(lambda: setattr(g.par, 'resolutionw', int(w)))
         _try(lambda: setattr(g.par, 'resolutionh', int(h)))
         _try(lambda: setattr(g.par, 'format', fmt))
+        _set_clamp(g)
 
     def _present_top(self, graph):
         if graph.render_surface:
@@ -238,3 +256,10 @@ def _try(fn):
         fn()
     except Exception:
         pass
+
+
+def _set_clamp(top):
+    """Match the reference's universal CLAMP_TO_EDGE (reference webgl2 texParameteri) so border
+    sampling (e.g. blur) agrees. The GLSL TOP's `inputextenduv` defaults to "zero" (transparent
+    edge — wrong); set it to "hold" (clamp). Menu: hold|zero|repeat|mirror."""
+    _try(lambda: setattr(top.par, 'inputextenduv', 'hold'))

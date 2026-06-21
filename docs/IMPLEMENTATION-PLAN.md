@@ -50,27 +50,27 @@ network of GLSL TOPs that TouchDesigner cooks each frame.
 - [x] 8 Tier-1 golden graph JSONs (`parity/out/*.graph.json`) + 8 golden PNGs (reference render,
       reused from the identical-DSL Godot port).
 
-## Phase 2 — Bring-up: minimal builder, end-to-end on `solid`  ⛔ gated on TD activation
+## Phase 2 — Bring-up: builder end-to-end  ✅ DONE
 
-The runtime and `solid.frag` exist; this phase RUNS them for the first time. Riskiest-first.
+The runtime ran for the first time and was iterated to green. Riskiest-first; all gates passed.
 
 - [x] Runtime core authored: `render_graph`, `graph_loader`, `dim` (reference/04 §9 exact),
       `engine_uniforms` (§10.1), `uniform_binder`, `td_backend`, `surface_manager`, `pipeline`,
       `nm_renderer`. Pure-Python core unit-smoke-tested under stock python3.
-- [x] `parity/render-candidate.py` + `parity/run.sh` authored (scripted, auto-quit, activation-aware).
-- [ ] **Activate TouchDesigner once** (Derivative account + key, GUI) — unblocks everything below.
-- [ ] **Task 2.1 — verify the GLSL TOP contract:** render `solid.frag` in a GLSL TOP; confirm
-      `TDOutputSwizzle`/`sTD2DInputs`/Vectors-page uniforms behave as documented. Confirm the
-      `TOUCH_START_COMMAND="exec(open(render-candidate.py))"` launch path works (fallback:
-      `td/make_bootstrap.py` Execute DAT).
-- [ ] **Task 2.2 — Y-origin determination:** render a `vUV.t` gradient and the real `gradient`
-      effect; compare to golden. Expect **no flip**; if mismatched, re-run `convert-shaders.mjs --flip-y`
-      (single control point) and document.
-- [ ] **Task 2.3 — `solid` parity gate:** `parity/run.sh solid` → SSIM≥0.98, max-diff≤2. `solid` is
-      a flat fill → near-exact. **First green gate.**
-- [ ] **Task 2.4 — uniform-feed confirmation:** verify the Vectors-page feed scales to ~13 uniforms
-      (`noise`) and int/bool uniforms bind; if not, switch `uniform_binder` to a CHOP/Arrays feed or
-      add a transpiler int→float refinement (PORTING-GUIDE "uniform typing").
+- [x] `td/parity_render_all.py` (batch renderer) + `td/build_parity_toe.py` (offline `.toe` author)
+      + `parity/run.sh` (build → render → compare) + `parity/.venv` (numpy/pillow for `compare.py`).
+- [x] **TouchDesigner license activated** (one-time, by the user) — bring-up then ran fully automated.
+- [x] **Task 2.1 — GLSL TOP contract verified.** `TDOutputSwizzle`/`sTD2DInputs`/Vectors uniforms
+      work as documented. **`TOUCH_START_COMMAND` does NOT exist in this build** — the startup hook
+      is an **Execute DAT (`onStart`/`onCreate`) inside a `.toe`**, which we author offline via
+      `toeexpand`/`toecollapse` (`td/build_parity_toe.py`). The runtime modules must fetch TD globals
+      (`glslTOP`, `baseCOMP`, …) from the `td` module — they aren't injected into imported `.py`.
+- [x] **Task 2.2 — Y-origin: NO FLIP (confirmed).** `gradient` matches the golden at SSIM 0.99999 —
+      TD's GLSL TOP is OpenGL bottom-left, same as the reference WebGL2 backend. The core thesis holds.
+- [x] **Task 2.3 — `solid` parity gate green** (SSIM 1.00000, max-diff 0). First gate passed.
+- [x] **Task 2.4 — uniform feed fixed.** The GLSL TOP `vec` parameter is the SLOT COUNT — it must be
+      set (`g.par.vec = N`) before `vecNname`/`vecNvalue*`; we now bind only the uniforms the shader
+      declares. int/bool bind fine as floats — **no CHOP/Arrays or transpiler change needed.**
 
 ## Phase 3 — Full builder coverage  ⛔ gated on Phase 2
 
@@ -83,14 +83,16 @@ The runtime and `solid.frag` exist; this phase RUNS them for the first time. Ris
 - [ ] 3.4 `td_backend` points scatter (`drawMode:"points"`): Geometry COMP + GLSL MAT + Render TOP.
 - [ ] 3.5 `pipeline` live time driving for animated effects (osc2d) + host `resize`.
 
-## Phase 4 — Tier-1 effect parity  ⛔ gated on Phase 2
+## Phase 4 — Tier-1 effect parity  ✅ DONE — 8/8 PASS
 
-Per effect: the `.frag` already exists (Phase 1); gate `parity/run.sh <prog>` vs golden.
-- [ ] 4.1 `synth/noise` (PCG value/simplex; `NOISE_TYPE`/`LOOP_OFFSET` define overrides).
-- [ ] 4.2 `synth/cell`  · [ ] 4.3 `synth/gradient` (Y sanity) · [ ] 4.4 `synth/shape` (SDF)
-- [ ] 4.5 `synth/osc2d` (time) · [ ] 4.6 `filter/blur` (2-pass, pooled intermediate)
-- [ ] 4.7 `mixer/blendMode` (two-input)
-- [ ] **Milestone:** 8/8 Tier-1 parity-pass (`parity/run.sh all` green).
+All eight match the reference at **SSIM ≥ 0.99998, max-diff ≤ 1** via `parity/run.sh all`
+(fully automated through the bootstrap `.toe`).
+- [x] 4.1 `synth/noise` (PCG value/simplex; `NOISE_TYPE`/`LOOP_OFFSET` defines) — ssim 0.99998
+- [x] 4.2 `synth/cell` 0.99999 · [x] 4.3 `synth/gradient` 0.99999 · [x] 4.4 `synth/shape` 0.99998
+- [x] 4.5 `synth/osc2d` 0.99998 · [x] 4.6 `filter/blur` 0.99998 (2-pass; needed input extend =
+      `hold` to match the reference's CLAMP_TO_EDGE — default was `zero`)
+- [x] 4.7 `mixer/blendMode` 0.99999 (two-input)
+- [x] **Milestone:** 8/8 Tier-1 parity-pass — **`parity/run.sh all` green.**
 
 ## Phase 5 — Expand coverage (templated)  ⛔ gated on Phase 4
 

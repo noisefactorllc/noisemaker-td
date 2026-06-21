@@ -37,8 +37,8 @@ parity/
   programs/*.dsl          8 Tier-1 test programs
   compare.py              golden vs candidate (max-abs-diff + SSIM)   (reused)
   export-and-render.mjs   golden PNG via the reference WebGL2 engine  (reused)
-  render-candidate.py     TD-side renderer: graph JSON → network → PNG (NEW)
-  run.sh                  golden → candidate → compare                (NEW)
+  run.sh                  build .toe → render in TD → compare          (NEW)
+  .venv/                  numpy+pillow for compare.py (gitignored)
   out/                    generated artifacts (gitignored)
 td/
   noisemaker/
@@ -48,7 +48,9 @@ td/
     compiler/             live DSL frontend (Phase 6 — staged)
     shaders/effects/<ns>/<effect>/<prog>.frag   per-program TD GLSL (generated)
     effects/<ns>/<func>.json                    effect definitions (generated)
-  make_bootstrap.py       builds the committed noisemaker.toe (run once inside TD)
+  parity_render_all.py    batch renderer: build each graph → render → save candidate (NEW)
+  build_parity_toe.py     authors the bootstrap nm_parity.toe via toeexpand/toecollapse (NEW)
+  make_bootstrap.py       builds an interactive host noisemaker.toe (live use)
 docs/                   IMPLEMENTATION-PLAN, GRAPH-JSON-SCHEMA, TD-PLATFORM-NOTES
 ARCHITECTURE.md  PORTING-GUIDE.md
 ```
@@ -70,27 +72,29 @@ NM_REFERENCE_ROOT=../noisemaker node tools/convert-shaders.mjs
 NM_REFERENCE_ROOT=../noisemaker node tools/export-graph.mjs --file parity/programs/solid.dsl parity/out/solid.graph.json
 ```
 
-## Parity
+## Parity — ✅ 8/8 Tier-1 PASS
 
 ```bash
-parity/run.sh solid        # one program     (needs an activated TouchDesigner — see below)
-parity/run.sh all          # all 8 Tier-1
+parity/run.sh all          # all 8 Tier-1   →  8/8 PASS
+parity/run.sh solid        # one program
 ```
-Targets, as on the sibling ports: **SSIM ≥ 0.98, max-abs-diff ≤ 1–2/255** (cross-device
-bit-exactness is impossible: MoltenVK/Metal vs ANGLE/WebGL2). Golden PNGs and 8 golden graph
-JSONs are checked into `parity/out/` for the Tier-1 set.
+`run.sh` builds a bootstrap `.toe` (`td/build_parity_toe.py`), launches TouchDesigner to render
+the candidates (`td/parity_render_all.py`), and diffs each against the reference golden
+(`parity/compare.py`, via `parity/.venv`). **All 8 Tier-1 effects match at SSIM ≥ 0.99998,
+max-diff ≤ 1** (target was SSIM ≥ 0.98, max-diff ≤ 1–2/255; cross-device bit-exactness is
+impossible — MoltenVK/Metal vs ANGLE/WebGL2). This validates the transpiler, runtime, uniform
+feed, the no-Y-flip thesis, time, multi-pass (`blur`) and two-input (`blendMode`) paths.
+
+TouchDesigner has no headless startup hook, so the bring-up runs via an Execute DAT inside a
+`.toe` (authored offline with `toeexpand`/`toecollapse`); see `docs/TD-PLATFORM-NOTES.md`.
 
 ## ⚠ Prerequisites
 
-TouchDesigner **2025.32820** is installed (`brew install --cask touchdesigner`; arm64-native).
-**Before any render or parity step can run, TouchDesigner must be license-activated once**
-through its GUI (free **Non-Commercial** tier: a Derivative account + key; 1280×1280 render
-cap, no watermark — parity renders are 256², well under). A fresh install blocks at the
-activation modal; `parity/run.sh` detects this and tells you. This is the single manual step;
-everything else (transpile, codegen, build) is automated and complete.
-
-Once activated, build the host project: open TouchDesigner and run
-`td/make_bootstrap.py` (Textport) to materialize `td/noisemaker.toe`, then `parity/run.sh all`.
+TouchDesigner **2025.32820** (`brew install --cask touchdesigner`; arm64-native). The free
+**Non-Commercial** tier needs a **one-time Derivative account + license activation** through the
+GUI (1280×1280 render cap, no watermark — parity renders are 256²). A fresh install blocks at the
+activation modal; once activated, everything is automated — `parity/run.sh all` runs to green with
+no further manual steps.
 
 ## Coverage
 
@@ -106,8 +110,10 @@ Once activated, build the host project: open TouchDesigner and run
 | classicNoisedeck | 20 | auto |
 | **total** | **182** | **247 programs — 226 auto-transpiled, 21 MRT flagged** |
 
-Status: scaffold + tooling + runtime + generated assets complete; Tier-1 bring-up and parity
-gated on the one-time TD activation. See `docs/IMPLEMENTATION-PLAN.md` for the staged plan.
+Status: scaffold + tooling + runtime + generated assets complete; **8/8 Tier-1 effects
+pixel-parity-validated** in TouchDesigner. Next: expand single-pass `synth`/`filter`/`mixer`/
+`classicNoisedeck` coverage (auto-transpiled `.frag` already generated — gate each), then the 21
+MRT/points/3D programs and the live Python DSL compiler. See `docs/IMPLEMENTATION-PLAN.md`.
 
 ## License
 

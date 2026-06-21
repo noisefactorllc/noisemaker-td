@@ -47,12 +47,11 @@ Result: **226 of 247 programs** convert cleanly. The 21 flagged are all MRT (bel
 
 ## Y-origin
 
-Default: **no flip.** TD GLSL TOP and the reference WebGL2 backend are both OpenGL bottom-left
-(reference/04 §3 PARITY HAZARD: WebGL2 textures are bottom-left; only WGSL/D3D ports flip). The
-transpiler emits `gl_FragCoord` verbatim. **Verify at bring-up** (Task 2.2) with a `vUV.t` gradient
-and the `gradient` effect; if a mismatch appears, regenerate with `convert-shaders.mjs --flip-y`,
-which routes `gl_FragCoord` through an `nm_FragCoord` that flips Y about `uTDOutputInfo.res.w` — the
-single control point (the analog of the HLSL port's one flip at `NMBlit`).
+**No flip — CONFIRMED at bring-up.** The `gradient` effect (Y-sensitive) matches the golden at
+SSIM 0.99999 with `gl_FragCoord` emitted verbatim: TD's GLSL TOP and the reference WebGL2 backend
+are both OpenGL bottom-left (reference/04 §3: WebGL2 textures are bottom-left; only WGSL/D3D ports
+flip). The `--flip-y` contingency (route `gl_FragCoord` through an `nm_FragCoord` that flips about
+`uTDOutputInfo.res.w`) exists but is unused.
 
 ## Manual procedure — MRT programs (the 21 flagged)
 
@@ -71,30 +70,28 @@ and need hand-finishing:
 ## Uniform contract
 
 Effects declare uniforms by name (`uniform float scaleX; uniform int seed; uniform vec2 resolution;`).
-The builder feeds them via the GLSL TOP **Vectors** page (`vecNname`/`vecNvaluex/y/z/w`) from Python
-(`uniform_binder.py`):
-- **Engine globals** (reference/04 §10.1) bound first: `time`, `resolution`, `tileOffset`,
-  `fullResolution`, `aspectRatio`, `renderScale`. TD has no built-in time → we supply `time`
-  (normalized 0..1) ourselves.
-- **Effect uniforms** from `pass.uniforms` bound next.
-- Packing: `float`→1 component, `vec2/3/4`/color→N, `bool`→`1.0/0.0`, `int`→`float`.
-
-**Two bring-up confirmations** (localized to `uniform_binder.py` if they need changing):
-- **Slot count** — `noise` needs ~13 uniforms. If the Vectors page exposes fewer slots, switch to an
-  Arrays-page "Uniform Array" fed by a Constant CHOP.
-- **uniform typing** — if TD won't bind a float Vectors slot to a `uniform int`/`uniform bool`, add a
-  transpiler pass emitting those declarations as `float` with in-shader casts.
+The builder feeds them via the GLSL TOP **Vectors** page from Python (`uniform_binder.py`):
+- The GLSL TOP's **`vec` parameter is the SLOT COUNT** — only `vec0` exists until you set
+  `g.par.vec = N`; THEN `vec0name`/`vec0valuex/y/z/w` … `vec(N-1)*` exist. (Missing this was the
+  Tier-1 bring-up bug: every effect got only its first uniform.)
+- We bind **only the uniforms the shader declares** (parsed from the `.frag`) — engine globals
+  (reference/04 §10.1: `time`, `resolution`, `tileOffset`, `fullResolution`, `aspectRatio`,
+  `renderScale`; TD has no built-in time so we supply `time`, normalized 0..1) ∪ `pass.uniforms`,
+  filtered. Binding undeclared names wastes slots.
+- Packing: `float`→1 component, `vec2/3/4`/color→N, `bool`→`1.0/0.0`, `int`→`float`. **int/bool
+  bind fine as floats — confirmed; no Arrays/CHOP feed or transpiler int→float change needed.**
 
 ## Parity hazards (adapted from reference/07, /08)
 
 | Hazard | Status on the TD port |
 |---|---|
-| Y-origin / raster flip (reference/04 §3) | **MOOT by default** — TD == WebGL2 (OpenGL bottom-left). One-switch contingency via `--flip-y`. |
+| Y-origin / raster flip (reference/04 §3) | **MOOT — confirmed** (`gradient` ssim 0.99999, no flip). TD == WebGL2 (OpenGL bottom-left). |
 | PCG bit-exactness (`pcg`, divisor `4294967295.0`) | **Preserved verbatim** — same GLSL `uvec3`/bit-ops; no `asuint`↔`floatBitsToUint` translation needed (unlike HLSL). |
 | `floatBitsToUint` / bitcasts | **N/A** — reference GLSL already uses GLSL bitcasts; copied as-is. |
 | Modulo sign (`mod`, `nm_positiveModulo`) | **Preserved verbatim** — GLSL `mod` semantics identical to the reference. |
-| int/bool uniform packing | **Open** — see "uniform typing" above; verify at Task 2.4. |
-| Coordinate convention (`globalCoord = gl_FragCoord.xy + tileOffset`, `st = …/fullResolution.y`) | Preserved verbatim; depends only on the Y-origin check. |
+| int/bool uniform packing | **RESOLVED** — bind as floats on the Vectors page; the `vec` count must be set first (see Uniform contract). |
+| Coordinate convention (`globalCoord = gl_FragCoord.xy + tileOffset`, `st = …/fullResolution.y`) | Preserved verbatim; correct (Y-origin confirmed). |
+| Texture edge sampling | **RESOLVED** — set GLSL TOP `inputextenduv = 'hold'` (clamp) to match the reference's `CLAMP_TO_EDGE`; TD defaults to `'zero'` (the `blur` border-ring bug). |
 | Texture format / sRGB | Linear only (`rgba16f`→16-bit float RGBA, never sRGB), set per-TOP by the builder. |
 | Cross-device float (MoltenVK/Metal vs ANGLE) | Inherent; absorbed by the SSIM≥0.98 / max-diff≤2 tolerance, same as the sibling ports. |
 

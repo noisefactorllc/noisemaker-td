@@ -14,24 +14,24 @@ from .surface_manager import SurfaceManager
 
 
 class Pipeline:
-    def __init__(self, parent_comp, shaders_root, *, width=256, height=256):
+    def __init__(self, parent_comp, shaders_root, *, width=256, height=256, time=0.25):
         self.parent = parent_comp
         self.shaders_root = shaders_root
         self.width = width
         self.height = height
+        self._time = time
         self.surfaces = SurfaceManager(parent_comp)
         self.backend = TDBackend(parent_comp, shaders_root, width=width, height=height,
-                                 surface_manager=self.surfaces)
+                                 time=time, surface_manager=self.surfaces)
         self.output = None      # the TOP presented (renderSurface)
-        self._effect_tops = []  # (top, time_slot) for per-frame time updates
-        self._time = 0.0
+        self._effect_tops = []
 
     def build(self, graph):
+        # The backend binds engine uniforms (incl. `time`) at build time; no post-build re-stamp
+        # (that would overwrite the per-effect uniforms). Live animation = rebuild (Phase 3.5).
         self.output = self.backend.build(graph)
         self.surfaces.finalize()
-        # Record effect TOPs so we can re-stamp `time` each frame. `time` is engine slot 0.
         self._effect_tops = [g for g in self.backend.ops if _is_glsl_top(g)]
-        self.set_time(self._time)
         return self.output
 
     def set_resolution(self, width, height):

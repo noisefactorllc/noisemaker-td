@@ -20,6 +20,15 @@ Two things to CONFIRM at bring-up (Task 2.3) — localized to this module if the
 VEC_COMPONENTS = ('valuex', 'valuey', 'valuez', 'valuew')
 
 
+def declared_uniform_names(frag_text):
+    """Scalar/vector uniform names declared in a .frag (samplers excluded) — so we bind only
+    what the shader uses and keep the Vectors slot count minimal."""
+    import re
+    return set(re.findall(
+        r'\buniform\s+(?:float|int|uint|bool|vec[234]|ivec[234]|uvec[234]|bvec[234]|mat[234])\s+'
+        r'([A-Za-z_]\w*)', frag_text))
+
+
 def _as_components(value):
     """Normalize a uniform value to a list of 1–4 floats."""
     if isinstance(value, bool):
@@ -33,25 +42,30 @@ def _as_components(value):
     return None
 
 
-def bind_uniforms(glsl_top, values, *, start_slot=0):
-    """Assign each (name, value) in `values` to a Vectors-page slot on `glsl_top`.
+def bind_uniforms(glsl_top, values):
+    """Bind {uniformName: value} onto `glsl_top`'s Vectors page.
 
-    `values` is an ordered mapping {uniformName: value}. Returns the next free slot index.
-    Order matters only for determinism; uniforms bind by name, not by slot position.
+    The GLSL TOP's `vec` parameter is the SLOT COUNT — only `vec0` exists until it's set, so we
+    set `g.par.vec = N` first to materialize N slots, then fill each. Returns the slot count.
+    Uniforms bind by name, not slot position. Pass only the uniforms the shader declares.
     """
-    slot = start_slot
+    items = []
     for name, value in values.items():
         comps = _as_components(value)
-        if comps is None:
-            continue
+        if comps is not None:
+            items.append((name, comps))
+    try:
+        setattr(glsl_top.par, 'vec', len(items))   # materialize the slots — THE key step
+    except Exception as exc:
+        _warn('set vec count=%d: %s' % (len(items), exc))
+    for slot, (name, comps) in enumerate(items):
         try:
             setattr(glsl_top.par, 'vec%dname' % slot, name)
             for i, comp in enumerate(comps):
                 setattr(glsl_top.par, 'vec%d%s' % (slot, VEC_COMPONENTS[i]), comp)
         except Exception as exc:  # noqa: BLE001 — surface, don't abort the whole build
             _warn('uniform %r slot %d: %s' % (name, slot, exc))
-        slot += 1
-    return slot
+    return len(items)
 
 
 def _warn(msg):

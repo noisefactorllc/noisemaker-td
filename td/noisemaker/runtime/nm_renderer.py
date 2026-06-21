@@ -21,13 +21,14 @@ from .pipeline import Pipeline
 
 
 class NMRenderer:
-    def __init__(self, owner_comp, *, shaders_root=None, width=256, height=256):
+    def __init__(self, owner_comp, *, shaders_root=None, width=256, height=256, time=0.25):
         self.owner = owner_comp
         # default: shaders ship beside this package at ../shaders/effects
         self.shaders_root = shaders_root or os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shaders', 'effects')
         self.width = width
         self.height = height
+        self.time = time
         self.pipeline = None
         self._graph = None
 
@@ -74,5 +75,6 @@ class NMRenderer:
         if self.pipeline is not None:
             self.pipeline.teardown()
         self._graph = graph
-        self.pipeline = Pipeline(self.owner, self.shaders_root, width=self.width, height=self.height)
+        self.pipeline = Pipeline(self.owner, self.shaders_root, width=self.width, height=self.height,
+                                 time=self.time)
         return self.pipeline.build(graph)

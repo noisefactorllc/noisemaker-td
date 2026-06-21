@@ -4,10 +4,8 @@ td/*.toe.toc
 td/*.dir/
 td/Backup/
 
-# Parity artifacts (generated — goldens regenerate from the reference)
-parity/out/*.png
-parity/out/*.graph.json
-parity/out/*.report.json
+# Parity artifacts — everything in out/ is generated (goldens/graphs/candidates/logs)
+parity/out/
 err.tmp
 
 # Node

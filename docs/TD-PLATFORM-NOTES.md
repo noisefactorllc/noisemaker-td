@@ -61,9 +61,13 @@ The GLSL TOP runs a **fragment** shader over the output raster (vertex stage sup
 - **Create/wire (Python):** `parent().create(glslTOP, 'name')`; `op('a').outputConnectors[0].connect(op('b'))`
   or `op('b').inputConnectors[i].connect(op('a'))`; set `op.par.*`; `op.destroy()`. `create()` takes a
   **type object** (`glslTOP`), not a string.
-- **Startup build:** Execute DAT `onStart()` (app launch) / `onCreate()` (on component load — rebuild on
-  open). The cook is **pull-based** — terminate the chain in a viewer/exporter so it cooks. Env override:
-  `TOUCH_START_COMMAND`.
+- **Startup build:** Execute DAT `onStart()` (app launch) / `onCreate()` (on component load — both fire
+  when TD opens a `.toe` from the CLI; this port uses them). The cook is **pull-based** — terminate the
+  chain in a viewer/exporter (or call `op.cook(force=True)`) so it cooks. NOTE: `TOUCH_START_COMMAND` is
+  **not present in the 2025.32820 build** (verified — not in any framework binary); there is no headless
+  startup-script env var, so an Execute DAT inside a `.toe` is the mechanism. Also: TD operator globals
+  (`op`, `glslTOP`, `baseCOMP`, …) are injected into DAT scopes via `from td import *` but **NOT into
+  imported `.py` modules** — helper packages must `import td` and use `td.glslTOP` etc.
 - **Render to file:** `op('x').save('f.png', createFolders=True)` (PNG/EXR/TIFF/…); or `TOP.numpyArray()`
   for in-process pixel diffing; or a Movie File Out TOP (`record`, `addframe.pulse()`). `project.quit(force=True)`
   to exit (flush `save()` before quitting).

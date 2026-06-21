@@ -15,11 +15,24 @@ case-sensitive substring tests on 'state'/'State'.
 """
 import re
 
-try:
-    feedbackTOP        # noqa: F821
-    _IN_TD = True
-except NameError:
-    _IN_TD = False
+def _td(name):
+    """Resolve a TouchDesigner global from the `td` module (see td_backend._td)."""
+    import td as _tdmod
+    if hasattr(_tdmod, name):
+        return getattr(_tdmod, name)
+    import builtins
+    if hasattr(builtins, name):
+        return getattr(builtins, name)
+    raise NameError('TouchDesigner global %r not found' % name)
+
+
+def _in_td():
+    try:
+        import td  # noqa: F401
+        return True
+    except Exception:
+        return False
+
 
 _STATE_NODE_RE = re.compile(r'^(xyz|vel|rgba|points_trail)_node_\d+$')
 
@@ -73,12 +86,12 @@ class SurfaceManager:
 
         Phase 5.5: also reconcile within-frame ping-pong. Left as a structured stub so the
         Tier-1 (display-surface) path is unaffected; sims light up when this is completed."""
-        if not _IN_TD:
+        if not _in_td():
             return
         for name, writer in self.writers.items():
             if not is_state_surface(name) or name in self.feedbacks:
                 continue
-            fb = self.parent.create(feedbackTOP, 'fb_%s' % re.sub(r'[^A-Za-z0-9_]', '_', name))
+            fb = self.parent.create(_td('feedbackTOP'), 'fb_%s' % re.sub(r'[^A-Za-z0-9_]', '_', name))
             self.ops.append(fb)
             self.feedbacks[name] = fb
             try:

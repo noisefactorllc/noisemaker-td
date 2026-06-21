@@ -58,6 +58,18 @@ class Pass:
     def is_blit(self) -> bool:
         return self.pass_type == "blit"
 
+    @property
+    def is_effect(self) -> bool:
+        return self.pass_type == "effect"
+
+    @property
+    def is_points(self) -> bool:
+        return self.draw_mode == "points"
+
+    @property
+    def is_mrt(self) -> bool:
+        return (self.draw_buffers or 0) > 1 or len(self.outputs) > 1
+
     @staticmethod
     def from_dict(d: dict) -> "Pass":
         return Pass(
