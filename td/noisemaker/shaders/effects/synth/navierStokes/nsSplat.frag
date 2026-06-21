@@ -82,9 +82,13 @@ void nm_main() {
     float iDye = clamp(inputDye, 0.0, 100.0) * 0.01;
     if (iForce > 0.0 || iDye > 0.0) {
         vec2 texel = 1.0 / vec2(texSize);
-        float lc = lum(texture(inputTex, uv).rgb);
-        float lr = lum(texture(inputTex, uv + vec2(texel.x, 0.0)).rgb);
-        float lu = lum(texture(inputTex, uv + vec2(0.0, texel.y)).rgb);
+        // PARITY/RANGE (port guard, not in the reference GLSL): clamp the input read to [0,1]. A
+        // no-op for the reference (its o0 is always [0,1]); bounds the HDR particle-field surface
+        // this pipeline can hand navierStokes — at velocityDecay~100 (no dissipation) an unclamped
+        // dye injection saturates to a white-out. (noisemaker-hlsl abb9578 / godot 58a1b88.)
+        float lc = lum(clamp(texture(inputTex, uv).rgb, 0.0, 1.0));
+        float lr = lum(clamp(texture(inputTex, uv + vec2(texel.x, 0.0)).rgb, 0.0, 1.0));
+        float lu = lum(clamp(texture(inputTex, uv + vec2(0.0, texel.y)).rgb, 0.0, 1.0));
         vec2 grad = vec2(lr - lc, lu - lc);
         vel += grad * iForce * 50.0;
         dye += lc * iDye * dt * 60.0;

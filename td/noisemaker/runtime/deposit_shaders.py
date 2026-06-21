@@ -40,6 +40,20 @@ int nm_agentTexel(out int vid, out vec4 pos, out vec4 col) {
     return ss;
 }
 
+// PARITY (large-stateSize precision): the reference density cull is fract(particleID*GR), GR=the
+// golden ratio. At ~1M agents (stateSize 1024) the raw product particleID*GR reaches ~6.5e5, where
+// float32's representable step (~0.06) is coarse enough that fract() quantizes into ~16 buckets ->
+// Metal over-deposits ~8x vs the reference's ANGLE -> an HDR over-bright trail that blows out the
+// downstream navierStokes (white-out / -- on TD's Metal float16 -- Inf->NaN). A hi/lo split keeps
+// the products small so fract is exact for IDs into the millions. (noisemaker-hlsl abb9578,
+// noisemaker-godot 58a1b88.)
+float nm_particleRandom(int vid) {
+    float pidf = float(vid);
+    float pidHi = floor(pidf / 4096.0);
+    float pidLo = pidf - pidHi * 4096.0;
+    return fract(pidHi * fract(4096.0 * 0.618033988749895) + pidLo * 0.618033988749895);
+}
+
 vec2 nm_clipPos(vec4 pos) {
     if (int(viewMode + 0.5) == 0) {
         return pos.xy * 2.0 - 1.0;
@@ -65,7 +79,7 @@ void main() {
     int vid; vec4 pos; vec4 col;
     nm_agentTexel(vid, pos, col);
     float cullThreshold = density / 100.0;
-    float particleRandom = fract(float(vid) * 0.618033988749895);
+    float particleRandom = nm_particleRandom(vid);
     if (particleRandom > cullThreshold || pos.w < 0.5) {
         gl_Position = vec4(2.0, 2.0, 0.0, 1.0); gl_PointSize = 0.0; vColor = vec4(0.0); return;
     }
@@ -96,7 +110,7 @@ void main() {
     int vid; vec4 pos; vec4 col;
     nm_agentTexel(vid, pos, col);
     float cullThreshold = density / 100.0;
-    float particleRandom = fract(float(vid) * 0.618033988749895);
+    float particleRandom = nm_particleRandom(vid);
     if (particleRandom > cullThreshold || pos.w < 0.5) {
         gl_Position = vec4(2.0, 2.0, 0.0, 1.0); gl_PointSize = 0.0; vColor = vec4(0.0); return;
     }
