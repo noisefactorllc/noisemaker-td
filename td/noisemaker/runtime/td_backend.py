@@ -91,11 +91,14 @@ class TDBackend:
         self.height = height
         self.time = time                           # normalized 0..1 baked into engine uniforms
         self.surfaces = surface_manager            # optional SurfaceManager for feedback
-        self.tex_top = {}                          # texId -> producing TOP
+        self.tex_top = {}                          # texId -> producing TOP (LAST writer so far)
         self.ops = []                              # everything we created (for teardown)
         self.warnings = []
         self._default_in = None                    # lazily-built 1x1 black TOP for 'none' inputs
-        self._back_edges = {}                      # feedback texId -> Feedback TOP
+        self._seq = 0                              # monotonic op-name counter (unrolled passes reuse p.id)
+        self._feedback = {}                        # cross-frame texId -> Feedback TOP (lazy)
+        self._effect_uniforms = []                 # [(glslTOP, {declared uniform: value})] for set_time
+        self._prog_tops = {}                       # progName -> [TOPs] (debug: dump a specific pass)
         self.has_feedback = False                  # graph has a cross-frame cycle (drive N frames)
 
     # -- public ------------------------------------------------------------
@@ -103,42 +106,100 @@ class TDBackend:
         """Build the whole network for `graph`; return the TOP to present (renderSurface)."""
         if not _in_td():
             raise RuntimeError('TDBackend.build() must run inside TouchDesigner (no op API found).')
-        self._detect_back_edges(graph)
+        self._detect_feedback(graph)
         for p in graph.passes:
             if p.is_blit:
                 self._build_blit(p, graph)
             elif p.is_points:
                 self._warn('points pass %s skipped (Phase 5.5: Geo COMP + GLSL MAT + Render TOP)' % p.id)
             else:
-                self._build_effect(p, graph)
-        # Wire each Feedback TOP's Target to the pass that writes the back-edge texId (the producer
-        # is built after the consumer, so this can only happen now). Output = producer's PREVIOUS
-        # frame, which breaks the cycle and gives the reference's cross-frame accumulation.
-        for tid, fb in self._back_edges.items():
-            writer = self.tex_top.get(tid)
+                # `repeat=N` is an intra-frame iterative solve (e.g. nsPressure Jacobi x40): each
+                # iteration reads the previous one's output. UNROLL into N chained TOPs — building
+                # the same pass N times in a row chains automatically through the last-writer
+                # `tex_top` (iteration k reads iteration k-1). This sidesteps TD's GLSL TOP `Passes`
+                # (whose previous-pass feedback semantics are unreliable) and is deterministic.
+                for _ in range(self._resolve_repeat(p)):
+                    self._build_effect(p, graph)
+        # Wire each Feedback TOP's Target to the LAST writer of its texId (built after the first
+        # reader, so only resolvable now). Output = that producer's PREVIOUS frame, which breaks
+        # the cross-frame cycle and gives the reference's frame-to-frame state persistence.
+        for tid, fb in self._feedback.items():
             if fb is None:
                 continue
+            writer = self.tex_top.get(tid)
             if writer is not None:
                 _try(lambda fb=fb, writer=writer: setattr(fb.par, 'top', writer))
+                # The feedback MUST match the source surface's RESOLUTION and FORMAT. A bare Feedback
+                # TOP defaults to a small fixed resolution (128) and 8-bit fixed format — both fatal:
+                #   * wrong resolution -> the consumer's textureSize(bufTex) disagrees with its own
+                #     render size, so every fragCoord/texSize UV is off (seeds tile into a quadrant);
+                #   * 8-bit fixed -> clamps float state (velocity ±12, positions) to [0,1].
+                # Mirror the writer (already sized/formatted from the surface spec).
+                spec = graph.spec_for(tid)
+                fmt = FORMAT_MAP.get(spec.fmt, 'rgba16float') if spec is not None else 'rgba16float'
+                try:
+                    rw = int(writer.par.resolutionw.eval())
+                    rh = int(writer.par.resolutionh.eval())
+                    # A bare Feedback TOP (no input) ignores its custom-resolution param and cooks at
+                    # a 128 default — so the FIRST-frame state (and textureSize seen by the consumer)
+                    # is the wrong size, corrupting any seed/init that keys off textureSize(bufTex).
+                    # Wire a correctly-sized ZERO Constant as the feedback input: it anchors the
+                    # resolution AND provides the empty (a=0) initial state the reference relies on.
+                    init = self.parent.create(_td('constantTOP'), fb.name + '_init')
+                    self.ops.append(init)
+                    init.par.outputresolution = 'custom'
+                    init.par.resolutionw = rw
+                    init.par.resolutionh = rh
+                    init.par.format = fmt
+                    for _p, _v in (('colorr', 0), ('colorg', 0), ('colorb', 0), ('alpha', 0)):
+                        setattr(init.par, _p, _v)
+                    fb.inputConnectors[0].connect(init)
+                    fb.par.format = fmt
+                    self._warn('feedback %s -> %dx%d fmt=%s' % (tid, rw, rh, fmt))
+                except Exception as e:
+                    self._warn('feedback %s init/format FAILED: %s' % (tid, e))
             else:
-                self._warn('feedback back-edge %s has no producer to target' % tid)
+                self._warn('feedback %s has no producer to target' % tid)
         return self._present_top(graph)
 
-    def _detect_back_edges(self, graph):
-        """A texId consumed by an earlier pass than the one that produces it is a feedback
-        back-edge (e.g. `feedback`'s selfTex: read by the blend pass, written by the copy pass).
-        Such reads must come from a Feedback TOP (1-frame delay) or the cook graph would cycle."""
+    def _detect_feedback(self, graph):
+        """Find texIds that need a cross-frame Feedback TOP (1-frame delay).
+
+        A pass input is a CROSS-FRAME read when its texId's first WRITE is at a pass index >= the
+        reading pass — i.e. the value is read before it is produced THIS frame, so it must come
+        from last frame. This is purely structural and covers all three shapes:
+          * j > i  — classic back-edge (`feedback`'s selfTex: read by blend, written later by copy);
+          * j == i — same-pass read+write state self-loop (navierStokes velocity: nsSplat reads AND
+                     writes ns_velocity; particle xyz/vel/rgba; trail surfaces);
+        Reads where an EARLIER pass already wrote the texId (j < i) are WITHIN-frame and resolve
+        through the last-writer `tex_top` chain instead (the natural ping-pong of a multi-pass
+        solver). The Feedback target is the texId's LAST writer (its persisted end-of-frame state)."""
         first_write = {}
         for i, p in enumerate(graph.passes):
             for tid in p.outputs.values():
                 first_write.setdefault(tid, i)
-        self._back_edges = {}                  # texId -> Feedback TOP (created lazily on first read)
+        self._feedback = {}                    # texId -> Feedback TOP (created lazily on first read)
         for i, p in enumerate(graph.passes):
             for tid in p.inputs.values():
+                if not tid or tid == 'none':
+                    continue
                 j = first_write.get(tid)
-                if j is not None and j > i:
-                    self._back_edges.setdefault(tid, None)
-        self.has_feedback = bool(self._back_edges)
+                if j is not None and j >= i:
+                    self._feedback.setdefault(tid, None)
+        self.has_feedback = bool(self._feedback)
+
+    def _resolve_repeat(self, p):
+        """Concrete iteration count for an unrolled pass. `repeat` is an int or a uniform NAME
+        (e.g. 'iterations' -> p.uniforms['iterations'] == 40 for navierStokes pressure)."""
+        r = getattr(p, 'repeat', None)
+        if r is None or isinstance(r, bool):
+            return 1
+        if isinstance(r, str):
+            r = p.uniforms.get(r)
+        try:
+            return max(1, int(r))
+        except (TypeError, ValueError):
+            return 1
 
     def teardown(self):
         for o in self.ops:
@@ -167,20 +228,22 @@ class TDBackend:
         header = ''.join(
             '#define %s %s\n' % (k, ('true' if _truthy(v) else 'false') if k in bool_keys else _glsl_lit(v))
             for k, v in p.defines.items())
-        dat = self.parent.create(_td('textDAT'), _safe_name(p.id) + '_src')
+        tag = self._unique_name(p.id)
+        dat = self.parent.create(_td('textDAT'), tag + '_src')
         dat.text = header + frag
         self.ops.append(dat)
 
         n_inputs = len(input_order)
         top_type = _td('glslmultiTOP') if n_inputs > 3 else _td('glslTOP')   # Multi lifts the 3-input cap
-        g = self.parent.create(top_type, _safe_name(p.id))
+        g = self.parent.create(top_type, tag)
         self.ops.append(g)
+        self._prog_tops.setdefault(p.prog_name, []).append(g)
         g.par.pixeldat = dat
         _try(lambda: setattr(g.par, 'glslversion', '4.60'))
 
         # resolution + format from the (primary) output texture spec.
         spec = self._primary_output_spec(p, graph)
-        self._apply_res_format(g, spec)
+        self._apply_res_format(g, spec, p.uniforms)
 
         # MRT
         if p.is_mrt:
@@ -188,9 +251,7 @@ class TDBackend:
             _try(lambda: setattr(g.par, 'numcolorbufs', n))
             self._warn('MRT pass %s (%d buffers): extra buffers need Render Select TOPs (Phase 5.5)' % (p.id, n))
 
-        # repeat -> Passes (intra-frame iteration; ping-pong feedback handled in Phase 3/5.5)
-        if isinstance(p.repeat, int) and p.repeat > 1:
-            _try(lambda: setattr(g.par, 'passes', p.repeat))
+        # NB: `repeat` is handled by UNROLLING in build() (N chained TOPs), not the Passes param.
 
         # uniforms: bind ONLY what the shader declares (engine globals ∪ pass uniforms), in one
         # pass — the binder sets the Vectors slot count. Binding undeclared names wastes slots
@@ -198,7 +259,12 @@ class TDBackend:
         merged = dict(engine_uniforms(self.width, self.height, self.time))
         merged.update(p.uniforms)
         declared = uniform_binder.declared_uniform_names(frag)
-        uniform_binder.bind_uniforms(g, {k: v for k, v in merged.items() if k in declared})
+        bound = {k: v for k, v in merged.items() if k in declared}
+        uniform_binder.bind_uniforms(g, bound)
+        # Remember the FULL declared binding so set_time() can re-bind with the new engine `time`
+        # WITHOUT dropping the per-effect uniforms (re-binding engine-only would reset the Vectors
+        # slot count and silently wipe speed/dyeDecay/zoom/... — black/garbage output).
+        self._effect_uniforms.append((g, bound))
 
         # wire inputs in NM_INPUTS order. A declared sampler with no/`none` texId binds the default
         # 1x1 black TOP — reference parity (unbound samplers read [0,0,0,0]) AND it makes TD declare
@@ -237,9 +303,15 @@ class TDBackend:
         return self._default_in
 
     # -- blit pass ---------------------------------------------------------
+    def _unique_name(self, pass_id):
+        """A network-unique op base name. Unrolled iterative passes (nsPressure x40) reuse one
+        pass id, so suffix a monotonic counter to avoid TD create() name collisions."""
+        self._seq += 1
+        return '%s_%d' % (_safe_name(pass_id), self._seq)
+
     def _build_blit(self, p, graph):
         src_id = p.inputs.get('src') or next(iter(p.inputs.values()), None)
-        n = self.parent.create(_td('nullTOP'), _safe_name(p.id))
+        n = self.parent.create(_td('nullTOP'), self._unique_name(p.id))
         self.ops.append(n)
         src = self._resolve_read(src_id) if src_id else None
         if src is not None:
@@ -254,33 +326,41 @@ class TDBackend:
 
     # -- helpers -----------------------------------------------------------
     def _resolve_read(self, tex_id):
-        """texId -> the TOP to read it from. A feedback back-edge resolves to a (lazily created)
-        Feedback TOP; global surfaces may route through the surface manager."""
-        if tex_id in self._back_edges:
-            fb = self._back_edges[tex_id]
+        """texId -> the TOP to read it from.
+
+        WITHIN-frame first: if an earlier pass already wrote this texId this build, read that
+        producer (the last-writer ping-pong chain). Otherwise, if the texId needs a cross-frame
+        value (read-before-write), resolve to a lazily-created Feedback TOP (1-frame delay)."""
+        if tex_id in self.tex_top:
+            return self.tex_top[tex_id]
+        if tex_id in self._feedback:
+            fb = self._feedback[tex_id]
             if fb is None:
                 fb = self.parent.create(_td('feedbackTOP'), _safe_name(tex_id) + '_fb')
                 self.ops.append(fb)
-                self._back_edges[tex_id] = fb
+                self._feedback[tex_id] = fb
             return fb
         if self.surfaces is not None:
             t = self.surfaces.read_top(tex_id)
             if t is not None:
                 return t
-        return self.tex_top.get(tex_id)
+        return None
 
     def _primary_output_spec(self, p, graph):
         # primary attachment is `color` (or the first output); resolve its texId spec.
         tex_id = p.outputs.get('color') or next(iter(p.outputs.values()), None)
         return graph.spec_for(tex_id) if tex_id else None
 
-    def _apply_res_format(self, g, spec):
+    def _apply_res_format(self, g, spec, uniforms=None):
         w = self.width
         h = self.height
         fmt = 'rgba16float'
         if spec is not None:
-            w = _dim.resolve_dimension(spec.width, self.width)
-            h = _dim.resolve_dimension(spec.height, self.height)
+            # Pass the pass's uniforms so dynamic dims resolve to the ACTUAL value, not the spec
+            # default: ns_velocity is {screenDivide: zoom_chain_1} — without uniforms it falls back
+            # to default 4 (64x64 instead of screen/zoom), running the whole sim at the wrong grid.
+            w = _dim.resolve_dimension(spec.width, self.width, uniforms)
+            h = _dim.resolve_dimension(spec.height, self.height, uniforms)
             fmt = FORMAT_MAP.get(spec.fmt, 'rgba16float')
         _try(lambda: setattr(g.par, 'outputresolution', 'custom'))
         _try(lambda: setattr(g.par, 'resolutionw', int(w)))

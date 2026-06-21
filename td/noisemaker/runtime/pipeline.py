@@ -27,8 +27,6 @@ class Pipeline:
         self._effect_tops = []
 
     def build(self, graph):
-        # The backend binds engine uniforms (incl. `time`) at build time; no post-build re-stamp
-        # (that would overwrite the per-effect uniforms). Live animation = rebuild (Phase 3.5).
         self.output = self.backend.build(graph)
         self.surfaces.finalize()
         self._effect_tops = [g for g in self.backend.ops if _is_glsl_top(g)]
@@ -40,11 +38,18 @@ class Pipeline:
         # full rebuild is simplest/safest for a resolution change (rare; parity is fixed-size).
 
     def set_time(self, t):
-        """Stamp normalized time onto every effect TOP's engine uniforms."""
+        """Stamp normalized time onto every effect TOP, preserving its per-effect uniforms.
+
+        Re-binding engine-uniforms-ONLY would reset the Vectors slot count and wipe each effect's
+        own uniforms (speed/dyeDecay/zoom/...). Instead we refresh the engine values WITHIN each
+        TOP's full declared binding and re-bind the whole set (same slot count, stable order)."""
         self._time = float(t)
         eu = engine_uniforms(self.width, self.height, self._time)
-        for g in self._effect_tops:
-            uniform_binder.bind_uniforms(g, eu)   # re-binds engine slots 0..n in stable order
+        for g, bound in self.backend._effect_uniforms:
+            for k, v in eu.items():
+                if k in bound:                    # only refresh engine uniforms the shader declares
+                    bound[k] = v
+            uniform_binder.bind_uniforms(g, bound)
 
     def render_to(self, filepath, *, time=None):
         """Deterministic one-shot render of the presented surface to an image file.
