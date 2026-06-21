@@ -5,7 +5,7 @@ ONCE inside an activated TouchDesigner to materialize the bootstrap project. Aft
 `.toe` can be opened directly and rebuilds itself on load.
 
 Run it from TD's Textport:
-    >>> exec(open('/Users/alex/platform/noisemaker-td/td/make_bootstrap.py').read())
+    >>> exec(open('/path/to/noisemaker-td/td/make_bootstrap.py').read())
 or headlessly:
     TOUCH_START_COMMAND="exec(open('.../td/make_bootstrap.py').read())" TouchDesigner
 

@@ -3,7 +3,7 @@
 Because TouchDesigner has no honored startup-script env var, the parity bring-up runs inside a
 live TD session. Paste ONE line into the Textport (Alt/Option+T):
 
-    exec(open('/Users/alex/platform/noisemaker-td/td/parity_render_all.py').read())
+    exec(open('/path/to/noisemaker-td/td/parity_render_all.py').read())
 
 It builds each Tier-1 graph via the noisemaker runtime, renders one deterministic frame, saves
 `parity/out/<prog>.candidate.png`, and logs per-effect results to `parity/out/_render_log.txt`
