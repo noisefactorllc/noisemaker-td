@@ -118,6 +118,8 @@ def render_all():
     for prog in TIER1:
         graph = os.path.join(OUT, '%s.graph.json' % prog)
         dsl = os.path.join(REPO, 'parity', 'programs', '%s.dsl' % prog)
+        if not os.path.exists(dsl):  # blaster corpus comps live under parity/corpus/
+            dsl = os.path.join(REPO, 'parity', 'corpus', '%s.dsl' % prog)
         cand = os.path.join(OUT, '%s.candidate.png' % prog)
         # NM_LIVE_DSL: render via the live in-engine Polymorphic compiler (nm.set_dsl) instead of
         # the offline golden graph JSON — validates the compiler runs in TD's embedded Python and
