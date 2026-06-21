@@ -99,10 +99,13 @@ def evolve_setup():
 
     root = op('/')                                              # noqa: F821
     holder = root.op('nm_evolve') or root.create(baseCOMP, 'nm_evolve')   # noqa: F821
-    sub = holder.op(PROG)
+    # TD operator names allow only [A-Za-z0-9_]; blaster comp ids like "-7d-cA" contain a dash, so
+    # create() would throw (silently aborting setup). Sanitize for the container name only.
+    safe = ''.join(c if (c.isalnum() or c == '_') else '_' for c in PROG) or 'prog'
+    sub = holder.op(safe)
     if sub:
         sub.destroy()
-    sub = holder.create(baseCOMP, PROG)                         # noqa: F821
+    sub = holder.create(baseCOMP, safe)                         # noqa: F821
 
     try:
         nm = NMRenderer(sub, width=SIZE, height=SIZE, time=BASE_TIME)

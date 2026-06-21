@@ -129,11 +129,13 @@ def render_all():
             log('%-10s SKIP (no dsl)' % prog); continue
         if not live and not os.path.exists(graph):
             log('%-10s SKIP (no graph json)' % prog); continue
-        # fresh sub-container per effect so networks don't collide
-        sub = holder.op(prog)
+        # fresh sub-container per effect so networks don't collide. TD op names allow only
+        # [A-Za-z0-9_]; blaster comp ids like "-7d-cA" contain a dash that create() rejects.
+        safe = ''.join(c if (c.isalnum() or c == '_') else '_' for c in prog) or 'prog'
+        sub = holder.op(safe)
         if sub:
             sub.destroy()
-        sub = holder.create(baseCOMP, prog)
+        sub = holder.create(baseCOMP, safe)
         try:
             nm = NMRenderer(sub, width=SIZE, height=SIZE)
             if live:
