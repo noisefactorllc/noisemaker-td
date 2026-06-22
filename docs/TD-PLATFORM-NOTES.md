@@ -137,6 +137,15 @@ texture); `render3d` / `renderLit3d` then raymarch it. Two TD-specific fixes (bo
    render then differs from the volumeSize-64 reference (lower 3D resolution) but is **correct** —
    validated apples-to-apples against volumeSize-32 reference goldens (max-diff 1, ssim ~1.0). Raise
    `NM_MAX_VOLUME_SIZE` on a Commercial/Educational license (which has no 1280 cap).
+   - The **orbit-camera** gens (noise3d/fractal3d/cell3d/shape3d/renderLit3d) view the volume from
+     *outside* at a distance, so the raymarch averages the 64→32 cap away and their default-`volumeSize:64`
+     parity DSLs still hit max-diff 1 against a 64 golden. **flythrough3d is the one exception**: its
+     camera flies *inside* the volume, so the cap is directly visible (a default-64 golden vs the TD-32
+     render is only ssim ~0.89, a bimodal 67%-exact / 25%-off split — the reference engine *itself*
+     shifts by the identical mean when clamped 64→32, proving it's the cap, not the port). Its parity
+     program therefore **pins `flythrough3d(volumeSize:32)`** so golden and candidate render at the
+     resolution TD can actually cook → ssim 0.99992, mean-abs-diff 0.017 (one voxel-boundary outlier
+     pixel; ssim-gated). This measures port-correctness rather than penalizing the license cap.
 
 Isolation harness: `parity/evolve.sh <prog>` with `NM_DUMP_PROG=<prog>` and `NM_DUMP_TEXID=<texId>`.
 
