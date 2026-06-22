@@ -168,6 +168,24 @@ horizontal cross (`cubeExport.crossLayout`). Driver: **`parity/cubemap.sh <prog>
 `synth3d_renderCubemapSurface`; also `synth3d_renderCubemap3d`). Result: 6 distinct faces, every
 face max-diff ≤ 1 (one byte-identical), cross ssim 1.0 — both cube renderers.
 
+**std140 UBO binding — DONE (synth/remap byte-identical via a Uniform Array).** `synth/remap` is the
+sole `layout(std140) uniform { vec4 data[267]; }` effect — the projection-map config packed into a
+vec4 array. A TD GLSL TOP has **no UBO parameter**, but it binds a large `uniform vec4 data[N]` from
+the **Arrays** page, which is the std140-UBO equivalent. Recipe (pinned by `td/array_probe.py`):
+`array{i}name` + `array{i}arraytype='uniformarray'` + `array{i}type='vec4'` + `array{i}chop`, where
+the CHOP is **4 channels (x,y,z,w) × N samples** and `data[i] = (x[i],y[i],z[i],w[i])` — row-major,
+so the packed array binds verbatim. Build the CHOP from a Table-DAT (4 rows, col0 = channel names) →
+DAT-to-CHOP (`firstrow='values'`, `firstcol='names'`). Pipeline: `convert-definitions.mjs` serializes
+the effect's `uniformLayout` into the JSON; `convert-shaders.mjs` rewrites the std140 block to
+`uniform vec4 data[N];`; `uniform_binder.pack_uniforms_with_layout` (Python port of the reference
+`packUniformsWithLayout`: value → `slot*4 + lane`) packs the flat uniforms, `bind_uniform_array` feeds
+the CHOP. The layout is loaded from the effect JSON by `td_backend._effect_uniform_layout` (the
+serialized graph DROPS it — both JS and Python graphs carry only the `blit` program; the reference
+attaches it at pipeline-build). set_time re-packs (time/resolution live in the array). Validated
+`remap(bgColor:[0.8,0.3,0.5])` → max-diff 0, ssim 1.0. (mashup, the other "UBO" effect, actually uses
+FLAT GLSL uniforms — its `uniformLayout` is WGSL-only — so it needs no array path, only its layer
+construct, which the reference itself gates.)
+
 **filter3d flow3d — DONE (renders end-to-end, chaos-gated ssim ~0.84 at f8).** A stateful 3D
 agent-flow filter: MRT agent pass (3 state buffers, 512² agents) → diffuse → copy → **points
 deposit** → blend, output a volume atlas raymarched by `render3d`. Every piece already existed
