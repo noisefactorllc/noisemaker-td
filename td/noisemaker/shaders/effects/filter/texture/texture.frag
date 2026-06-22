@@ -20,7 +20,7 @@ uniform float time;
 uniform float alpha;
 uniform float scale;
 
-in vec2 v_texCoord;
+#define v_texCoord vUV.st
 out vec4 fragColor;
 
 const float PI = 3.14159265359;

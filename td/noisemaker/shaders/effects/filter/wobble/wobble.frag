@@ -9,7 +9,7 @@ uniform float speed;
 uniform float range;
 uniform float wrap;
 
-in vec2 v_texCoord;
+#define v_texCoord vUV.st
 out vec4 fragColor;
 
 const float TAU = 6.28318530717959;

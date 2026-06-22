@@ -95,6 +95,14 @@ function transpile (src, { flipY }) {
   body = body.replace(samplerRe, '') // remove declarations
   const inputDefines = inputs.map((n, i) => `#define ${n} sTD2DInputs[${i}]`).join('\n')
 
+  // 2b. v_texCoord: the reference's vertex-shader [0,1] quad varying. A TD GLSL TOP doesn't output
+  // it — it provides the built-in `vUV` instead — so a frag declaring `in vec2 v_texCoord;` fails to
+  // LINK ("Input 'v_texCoord' … has no corresponding output in vertex shader"). Map it to `vUV.st`
+  // (the same bottom-left [0,1] texcoord — no Y-flip, matching the default convention). Only
+  // filter/{texture,grime,wobble,spookyTicker} declare it.
+  body = body.replace(/^[ \t]*in[ \t]+vec2[ \t]+v_texCoord[ \t]*;[ \t]*(?:\/\/.*)?$/gm,
+    '#define v_texCoord vUV.st')
+
   // 3. fragment outputs.
   const outRe = /^[ \t]*(?:layout\s*\([^)]*\)\s*)?out[ \t]+vec4[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*(?:\/\/.*)?$/gm
   const outs = []

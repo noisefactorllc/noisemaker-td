@@ -11,7 +11,7 @@ uniform float alpha;
 uniform int rows;
 uniform int seed;
 
-in vec2 v_texCoord;
+#define v_texCoord vUV.st
 out vec4 fragColor;
 
 // Bank OCR bitmaps: 10 digits, 7 wide x 8 tall each

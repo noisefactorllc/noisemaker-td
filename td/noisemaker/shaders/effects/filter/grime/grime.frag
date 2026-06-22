@@ -16,7 +16,7 @@ uniform vec2 tileOffset;
 uniform float strength;
 uniform float seed;
 
-in vec2 v_texCoord;
+#define v_texCoord vUV.st
 out vec4 fragColor;
 
 float clamp01(float v) {
