@@ -150,6 +150,12 @@ function convertEffect (instance, namespace, name) {
   if (instance.tags) def.tags = instance.tags
   if (instance.description) def.description = instance.description
   def.paramAliases = instance.paramAliases || {}
+  // std140 uniform-block layout: {uniformName: {slot, components}} (and per-program uniformLayouts).
+  // The reference packs flat uniforms into a `vec4 data[N]` array via this; the Python compiler reads
+  // it (effect_registry → expander → graph programs map) and the TD backend binds it as a uniform
+  // array (the std140 UBO equivalent). Only synth/remap declares one today.
+  if (instance.uniformLayout) def.uniformLayout = instance.uniformLayout
+  if (instance.uniformLayouts) def.uniformLayouts = instance.uniformLayouts
   def.globals = projectGlobals(instance.globals)
   def.passes = (instance.passes || []).map(projectPass)
   def.textures = projectTextures(instance.textures, false) || {}

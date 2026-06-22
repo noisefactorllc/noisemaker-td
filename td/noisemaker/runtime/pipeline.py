@@ -50,6 +50,14 @@ class Pipeline:
                 if k in bound:                    # only refresh engine uniforms the shader declares
                     bound[k] = v
             uniform_binder.bind_uniforms(g, bound)
+        # std140 uniform arrays (remap data[]): time/resolution live in the packed array too, so
+        # refresh those engine values and re-pack+re-bind the array (cheap; only synth/remap today).
+        for g, layout, merged, arrays in getattr(self.backend, '_effect_arrays', []):
+            merged.update(eu)
+            packed = uniform_binder.pack_uniforms_with_layout(merged, layout)
+            for arr_name, info in arrays.items():
+                n4 = info['length'] * 4
+                uniform_binder.bind_uniform_array(g, arr_name, (packed + [0.0] * n4)[:n4])
 
     def render_to(self, filepath, *, time=None):
         """Deterministic one-shot render of the presented surface to an image file.

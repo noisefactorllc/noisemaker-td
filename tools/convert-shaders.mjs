@@ -103,6 +103,18 @@ function transpile (src, { flipY }) {
   body = body.replace(/^[ \t]*in[ \t]+vec2[ \t]+v_texCoord[ \t]*;[ \t]*(?:\/\/.*)?$/gm,
     '#define v_texCoord vUV.st')
 
+  // 2c. std140 uniform BLOCK -> plain uniform decls. A TD GLSL TOP has no UBO parameter, but it binds
+  // a large `uniform vec4 data[N]` as a **Uniform Array** (Arrays page, CHOP-sourced) — the std140 UBO
+  // equivalent (proven: td/array_probe.py). Strip `layout(std140) uniform Name { <decls>; };` to its
+  // inner `uniform <decl>;` lines; the backend packs the flat uniforms into the array via the effect's
+  // uniformLayout. Only synth/remap declares one (`vec4 data[267]`). Flagged so the builder can see it.
+  body = body.replace(/layout\s*\(\s*std140\s*\)\s*uniform\s+(\w+)\s*\{([\s\S]*?)\}\s*;/g,
+    (_m, blockName, inner) => {
+      const decls = inner.split(';').map(s => s.trim()).filter(Boolean)
+      notes.push(`UNIFORM_ARRAY (std140 block ${blockName} -> ${decls.join('; ')})`)
+      return decls.map(d => `uniform ${d};`).join('\n')
+    })
+
   // 3. fragment outputs.
   const outRe = /^[ \t]*(?:layout\s*\([^)]*\)\s*)?out[ \t]+vec4[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*(?:\/\/.*)?$/gm
   const outs = []

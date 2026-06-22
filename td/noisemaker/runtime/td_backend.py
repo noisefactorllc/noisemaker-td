@@ -98,6 +98,8 @@ class TDBackend:
         self._seq = 0                              # monotonic op-name counter (unrolled passes reuse p.id)
         self._feedback = {}                        # cross-frame texId -> Feedback TOP (lazy)
         self._effect_uniforms = []                 # [(glslTOP, {declared uniform: value})] for set_time
+        self._effect_arrays = []                   # [(glslTOP, layout, merged, {arr: info})] for set_time
+        self._layout_cache = {}                    # (namespace, func) -> std140 uniformLayout | None
         self._prog_tops = {}                       # progName -> [TOPs] (debug: dump a specific pass)
         self._mrt_diag_done = False                 # one-time Render Select param introspection log
         self._tex_res = {}                          # texId -> (w,h) resolved (for feedback sizing)
@@ -216,6 +218,26 @@ class TDBackend:
         self.ops = []
         self.tex_top = {}
 
+    def _effect_uniform_layout(self, namespace, func):
+        """The effect's std140 `uniformLayout` ({name:{slot,components}}) from its JSON, cached.
+
+        The reference attaches this to the pass spec at pipeline-build time from the effect def; the
+        SERIALIZED graph drops it (both JS and Python carry only the 'blit' program), so the backend
+        reads it straight from td/noisemaker/effects/<ns>/<func>.json here. Only synth/remap has one."""
+        if not namespace or not func:
+            return None
+        key = (namespace, func)
+        if key not in self._layout_cache:
+            import json
+            import os
+            path = os.path.join(os.path.dirname(__file__), '..', 'effects', namespace, func + '.json')
+            try:
+                with open(path) as fh:
+                    self._layout_cache[key] = json.load(fh).get('uniformLayout')
+            except Exception:
+                self._layout_cache[key] = None
+        return self._layout_cache[key]
+
     def _cap_volume_size(self, graph):
         """Clamp the 3D-volume atlas size to fit TD's cook-resolution limit.
 
@@ -291,6 +313,20 @@ class TDBackend:
         # WITHOUT dropping the per-effect uniforms (re-binding engine-only would reset the Vectors
         # slot count and silently wipe speed/dyeDecay/zoom/... — black/garbage output).
         self._effect_uniforms.append((g, bound))
+
+        # std140 UNIFORM ARRAY (synth/remap `vec4 data[267]`): the frag declares a uniform array and
+        # the program carries a uniformLayout — pack the FULL flat uniforms (zone config etc., which
+        # are NOT declared scalars in the frag) into the array via the layout, bind via the Arrays
+        # page. Packs from `merged` (engine ∪ pass uniforms), not the declared-filtered `bound`.
+        arrays = uniform_binder.declared_array_uniforms(frag)
+        layout = self._effect_uniform_layout(p.namespace, p.func) if arrays else None
+        if arrays and layout:
+            packed = uniform_binder.pack_uniforms_with_layout(merged, layout)
+            for arr_name, info in arrays.items():
+                n4 = info['length'] * 4
+                buf = (packed + [0.0] * n4)[:n4]
+                uniform_binder.bind_uniform_array(g, arr_name, buf)
+            self._effect_arrays.append((g, layout, dict(merged), arrays))
 
         # wire inputs in NM_INPUTS order. A declared sampler with no/`none` texId binds the default
         # 1x1 black TOP — reference parity (unbound samplers read [0,0,0,0]) AND it makes TD declare

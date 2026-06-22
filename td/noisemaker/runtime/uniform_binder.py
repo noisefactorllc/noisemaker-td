@@ -22,11 +22,85 @@ VEC_COMPONENTS = ('valuex', 'valuey', 'valuez', 'valuew')
 
 def declared_uniform_names(frag_text):
     """Scalar/vector uniform names declared in a .frag (samplers excluded) — so we bind only
-    what the shader uses and keep the Vectors slot count minimal."""
+    what the shader uses and keep the Vectors slot count minimal. Array uniforms (`name[N]`) are
+    EXCLUDED — they take the Arrays page (declared_array_uniforms / bind_uniform_array), not Vectors."""
     import re
     return set(re.findall(
         r'\buniform\s+(?:float|int|uint|bool|vec[234]|ivec[234]|uvec[234]|bvec[234]|mat[234])\s+'
-        r'([A-Za-z_]\w*)', frag_text))
+        r'([A-Za-z_]\w*)\b(?!\s*\[)', frag_text))
+
+
+def declared_array_uniforms(frag_text):
+    """{name: length} for each `uniform vecN name[L];` — bound via the GLSL TOP **Arrays** page
+    (a Uniform Array sourced from a CHOP), TD's std140-UBO equivalent. Only synth/remap uses one
+    (`vec4 data[267]`, the packed projection-map config). Element kind is captured for the bind."""
+    import re
+    out = {}
+    for kind, name, length in re.findall(
+            r'\buniform\s+(float|vec[234])\s+([A-Za-z_]\w*)\s*\[\s*(\d+)\s*\]', frag_text):
+        out[name] = {'length': int(length), 'kind': kind}
+    return out
+
+
+def pack_uniforms_with_layout(uniforms, layout):
+    """Pack flat uniform values into a std140 `vec4 data[N]` float array — a Python port of the
+    reference webgl2 `packUniformsWithLayout`. `layout` is {name: {slot, components}} where slot is
+    the vec4 index and components is an xyzw substring; each value lands at slot*4 + lane, written
+    consecutively from the first component. Returns a flat float list of length (maxSlot+1)*4."""
+    comp_off = {'x': 0, 'y': 1, 'z': 2, 'w': 3}
+    max_slot = 0
+    for e in layout.values():
+        max_slot = max(max_slot, int(e.get('slot', 0)))
+    packed = [0.0] * ((max_slot + 1) * 4)
+    for name, e in layout.items():
+        value = uniforms.get(name)
+        if value is None:
+            continue
+        slot = int(e['slot'])
+        comps = e.get('components', 'x')
+        base = slot * 4 + comp_off[comps[0]]
+        if isinstance(value, bool):
+            packed[base] = 1.0 if value else 0.0
+        elif isinstance(value, (int, float)):
+            packed[base] = float(value)
+        elif isinstance(value, (list, tuple)):
+            for i in range(min(len(value), len(comps))):
+                packed[slot * 4 + comp_off[comps[i]]] = float(value[i])
+    return packed
+
+
+def bind_uniform_array(glsl_top, name, packed):
+    """Bind a `uniform vec4 <name>[N]` from the flat `packed` floats (row-major: data[i]=packed[i*4..]).
+
+    TD has no UBO parameter; a GLSL TOP binds a large uniform array from the **Arrays** page —
+    `array{i}name` + `array{i}arraytype='uniformarray'` + `array{i}type='vec4'` + `array{i}chop`, where
+    the CHOP is 4 channels (x,y,z,w) × N samples and data[i]=(x[i],y[i],z[i],w[i]). Pinned by
+    td/array_probe.py. The per-array Table DAT + DAT-to-CHOP are reused across set_time re-binds."""
+    import td
+    parent = glsl_top.parent()
+    n = len(packed) // 4
+    dat_name = '%s_arrd_%s' % (glsl_top.name, name)
+    dat = parent.op(dat_name) or parent.create(td.tableDAT, dat_name)
+    dat.clear()
+    for c, comp in enumerate(('x', 'y', 'z', 'w')):
+        dat.appendRow([comp] + [repr(packed[i * 4 + c]) for i in range(n)])
+    chop_name = '%s_arrc_%s' % (glsl_top.name, name)
+    ch = parent.op(chop_name) or parent.create(td.dattoCHOP, chop_name)
+    try:
+        ch.par.dat = dat
+        ch.par.firstrow = 'values'
+        ch.par.firstcol = 'names'
+    except Exception as exc:
+        _warn('array %r chop setup: %s' % (name, exc))
+    try:
+        setattr(glsl_top.par, 'array', 1)
+        setattr(glsl_top.par, 'array0name', name)
+        setattr(glsl_top.par, 'array0arraytype', 'uniformarray')
+        setattr(glsl_top.par, 'array0type', 'vec4')
+        setattr(glsl_top.par, 'array0chop', ch)
+    except Exception as exc:
+        _warn('array %r bind: %s' % (name, exc))
+    return n
 
 
 def _as_components(value):
