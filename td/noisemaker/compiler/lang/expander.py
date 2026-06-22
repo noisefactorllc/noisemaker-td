@@ -81,11 +81,16 @@ def _js_number_string(v):
 
 
 def _arg_to_uniform(arg):
-    """Native arg value -> uniform value. Surfaces -> None (not a uniform); oscillator/object
-    dicts and number/bool/string/array pass through (reference/03 ArgToUniform)."""
+    """Native arg value -> uniform value (reference/03 ArgToUniform). Mirrors the reference
+    expander's `arg.value ?? arg`: only the COLORMODE surface kinds (temp/output/source/feedback/
+    xyz/vel/rgba — texture inputs handled via pass.inputs) are dropped; vol/geo (and mesh/pipeline/
+    state) surface-refs ARE uniforms and pass through as the {kind,name} object (e.g. a 3D
+    generator's `source`/`geoSource` globals → `{kind:'vol',name:'vol0'}`). Both call sites already
+    pre-skip the colormode kinds, so the guard here is belt-and-suspenders. Oscillator/object dicts
+    and number/bool/string/array pass through unchanged."""
     if arg is None:
         return None
-    if _is_surface(arg):
+    if _is_surface(arg) and _is_colormode_surface_kind(arg['kind']):
         return None
     return arg
 
