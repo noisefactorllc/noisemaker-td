@@ -39,6 +39,8 @@ esac; }
 defer_reason() { case "$1" in
   cellularAutomata|reactionDiffusion|motionBlur)
     echo "multi-frame feedback — driven + graded by parity/accumulate.sh (8/8 gated checks pass)" ;;
+  synth3d_cellularAutomata3d|synth3d_reactionDiffusion3d)
+    echo "3D-volume stateful (<sim>3d().render3d()) — driven + graded by parity/accumulate.sh (f1/f2 max-diff=1)" ;;
   *) echo "" ;;
 esac; }
 

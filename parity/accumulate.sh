@@ -25,6 +25,16 @@
 #                      export-and-render) diverge to ssim ~0.47. So it is gated on the early frames
 #                      only; f4+ is reported, not failed — the same chaos class as navierStokes and
 #                      the flagship target (see docs/CHAOS-GATE.md).
+#   synth3d_cellularAutomata3d   the 3D-volume discrete CA, evolved as a ca_state feedback volume and
+#                      turned to pixels by render3d()'s raymarch. f1/f2 max-abs-diff=1 (the seed
+#                      volume + 3D neighbour update are an exact port); at f8 a few boundary cells
+#                      flip after 8 generations of cross-backend ULP and the raymarch over the sharp
+#                      voxel amplifies that single flip to a high max-diff (170) at a negligible mean
+#                      (0.43) — ssim-gated (0.996), the discrete-CA class but read through a raymarch.
+#   synth3d_reactionDiffusion3d  the 3D-volume Gray-Scott (rd_state feedback volume) through render3d().
+#                      f1/f2 bit-exact (max-abs-diff=1) then the continuous reaction term chaotically
+#                      amplifies sub-ULP fp differences (f8 ssim ~0.977) — same chaos class as the 2D
+#                      effect; f8 reported, not failed.
 #
 #   NM_REFERENCE_ROOT=/path/to/noisemaker parity/accumulate.sh   # regen goldens, drive all, grade
 #   parity/accumulate.sh --no-stage   # reuse existing parity/out/<e>.f*.golden.png; just drive+grade
@@ -33,7 +43,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/.." && pwd)"
 PY="$REPO/parity/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 OUT="$REPO/parity/out"; mkdir -p "$OUT"
 
-EFFECTS="cellularAutomata motionBlur reactionDiffusion"
+EFFECTS="cellularAutomata motionBlur reactionDiffusion synth3d_cellularAutomata3d synth3d_reactionDiffusion3d"
 GRADE_FRAMES="1 2 8"          # frames captured + graded (per-effect verdict below)
 
 stage=1
@@ -91,5 +101,15 @@ if grade reactionDiffusion 1 2.001 0.98; then pass=$((pass+1)); else fail=$((fai
 if grade reactionDiffusion 2 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
 report reactionDiffusion 8
 
-echo "=== ACCUMULATE: $pass / $((pass+fail)) gated checks PASS (reactionDiffusion f8 chaos-gated, reported) ==="
+echo "=== cellularAutomata3d (3D discrete CA via render3d — f1/f2 max-diff=1 strict, f8 ssim-gated) ==="
+if grade synth3d_cellularAutomata3d 1 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+if grade synth3d_cellularAutomata3d 2 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+if grade synth3d_cellularAutomata3d 8 255   0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+
+echo "=== reactionDiffusion3d (3D Gray-Scott via render3d — f1/f2 strict, f8 chaos-gated) ==="
+if grade synth3d_reactionDiffusion3d 1 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+if grade synth3d_reactionDiffusion3d 2 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+report synth3d_reactionDiffusion3d 8
+
+echo "=== ACCUMULATE: $pass / $((pass+fail)) gated checks PASS (reactionDiffusion + reactionDiffusion3d f8 chaos-gated, reported) ==="
 [ "$fail" = 0 ]

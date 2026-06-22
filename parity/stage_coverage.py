@@ -41,7 +41,12 @@ BATCH = os.path.join(REPO, 'parity', 'batch-golden.mjs')
 # can't accumulate their feedback). Reported here, not rendered as single-frame goldens.
 # convolutionFeedback is the same class (a `feedbackTex` temporal blend); evolve-validated at f8
 # ssim 0.99483 (8-bit-feedback drift, like motionBlur — Metal vs ANGLE convolution over frames).
-ACCUM_EFFECTS = {'cellularAutomata', 'reactionDiffusion', 'motionBlur', 'convolutionFeedback'}
+# The synth3d_* pair are the 3D-volume statefuls (a `<sim>3d().render3d()` chain over a ca_state /
+# rd_state feedback volume): same feedback class, graded by parity/accumulate.sh — f1/f2 bit-exact
+# (max-abs-diff=1), then cellularAutomata3d ssim-gated (0.996 @ f8) and reactionDiffusion3d chaos-
+# reported (continuous Gray-Scott, 0.977 @ f8), mirroring their 2D counterparts.
+ACCUM_EFFECTS = {'cellularAutomata', 'reactionDiffusion', 'motionBlur', 'convolutionFeedback',
+                 'synth3d_cellularAutomata3d', 'synth3d_reactionDiffusion3d'}
 
 
 def reference_root():
