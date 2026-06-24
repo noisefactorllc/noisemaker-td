@@ -33,34 +33,24 @@ float computeBlurFactor(float depth) {
     return clamp(blur, 0.0, 1.0);
 }
 
-// Apply depth of field blur
+// Apply depth of field blur using golden-angle spiral disk samples
 vec4 applyFocusBlur(sampler2D sceneTex, sampler2D depthTex, vec2 uv) {
-    // Sample depth texture and compute luminosity as depth proxy
     vec4 depthSample = texture(depthTex, gl_FragCoord.xy / vec2(textureSize(depthTex, 0)));
     float depth = getLuminosity(depthSample.rgb);
-    
-    // Calculate blur amount based on distance from focal plane
-    float blurFactor = computeBlurFactor(depth) * 10.0;
-    
+
+    float blurRadius = computeBlurFactor(depth) * sampleBias;
+
     vec4 color = vec4(0.0);
-    float totalWeight = 0.0;
-    
-    // Gaussian blur convolution kernel (9x9)
-    for (int x = -4; x <= 4; x++) {
-        for (int y = -4; y <= 4; y++) {
-            vec2 offset = vec2(float(x), float(y)) * sampleBias / resolution;
-            
-            // Gaussian weight based on distance from center
-            float dist2 = float(x * x + y * y);
-            float sigma2 = 2.0 * blurFactor * blurFactor;
-            float weight = exp(-dist2 / max(sigma2, 0.001));
-            
-            color += texture(sceneTex, ((uv + offset) * fullResolution - tileOffset) / vec2(textureSize(sceneTex, 0))) * weight;
-            totalWeight += weight;
-        }
+    const float GOLDEN = 2.399963;
+
+    for (int i = 0; i < 64; i++) {
+        float r = sqrt(float(i) / 64.0);
+        float theta = float(i) * GOLDEN;
+        vec2 offset = vec2(cos(theta), sin(theta)) * r * blurRadius / resolution;
+        color += texture(sceneTex, ((uv + offset) * fullResolution - tileOffset) / vec2(textureSize(sceneTex, 0)));
     }
-    
-    return color / totalWeight;
+
+    return color / 64.0;
 }
 
 void nm_main() {

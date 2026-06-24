@@ -18,7 +18,7 @@ void nm_main() {
     // Apply intensity decay (persistence)
     // intensity=100 means no decay, intensity=0 means instant fade
     float decay = clamp(intensity / 100.0, 0.0, 1.0);
-    fragColor = trailColor * decay;
+    fragColor = clamp(trailColor * decay, 0.0, 1.0);
 }
 void main() {
     nm_main();
