@@ -9,7 +9,8 @@
 #   td_backend      — the static network builder: RenderGraph → GLSL TOP graph.
 #   surface_manager — Feedback TOPs for o0..o7 / state surfaces (cross-frame).
 #   pipeline        — build orchestration + deterministic time driving.
-#   nm_renderer     — host COMP extension (public API: set_dsl/set_uniform/resize/Output).
+#   nm_renderer     — host COMP extension (public API: set_graph / set_graph_dict / set_graph_str /
+#                     set_dsl / resize / render_to / Output).
 #
 # Everything except render_graph/graph_loader/dim touches the TouchDesigner Python API
 # (`op`, `parent`, `glslTOP`, …) and therefore only runs inside a TouchDesigner process.

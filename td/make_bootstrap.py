@@ -4,10 +4,10 @@ TouchDesigner `.toe`/`.tox` files are binary and cannot be authored offline, so 
 ONCE inside an activated TouchDesigner to materialize the bootstrap project. After that the
 `.toe` can be opened directly and rebuilds itself on load.
 
-Run it from TD's Textport:
+Run it from TD's Textport (Alt/Option+T):
     >>> exec(open('/path/to/noisemaker-td/td/make_bootstrap.py').read())
-or headlessly:
-    TOUCH_START_COMMAND="exec(open('.../td/make_bootstrap.py').read())" TouchDesigner
+(Note: there is NO headless startup hook — the `TOUCH_START_COMMAND` env var does not exist in build
+2025.32820. Use the Textport method above, or an Execute DAT inside a `.toe` as the parity harness does.)
 
 It builds:
     /project1/noisemaker        Base COMP, NMRenderer extension attached

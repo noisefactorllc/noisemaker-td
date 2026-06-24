@@ -18,6 +18,9 @@
 #                      to max-diff 3 / ssim 0.99992 at the canonical f8. SSIM-gated, like the sweep's
 #                      other cross-backend-drift effects (edge/crt/...). The alpha series
 #                      0.60->0.84->0.94->0.99 (1-0.4^n) is the proof the accumulation actually runs.
+#   convolutionFeedback  a `feedbackTex` temporal-convolution blend — the same rgba8 8-bit-feedback
+#                      drift class as motionBlur. f1/f2 byte-exact, then a mild per-frame re-quant drift;
+#                      SSIM-gated at f8 (figure pinned by this harness).
 #   reactionDiffusion  continuous Gray-Scott at the stability limit. seed + f1/f2 are bit-exact (the
 #                      diffusion kernel + reaction term are a faithful port) then it chaotically
 #                      amplifies sub-ULP cross-backend fp differences (f4 ssim ~0.88). NO stable
@@ -43,7 +46,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/.." && pwd)"
 PY="$REPO/parity/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 OUT="$REPO/parity/out"; mkdir -p "$OUT"
 
-EFFECTS="cellularAutomata motionBlur reactionDiffusion synth3d_cellularAutomata3d synth3d_reactionDiffusion3d"
+EFFECTS="cellularAutomata motionBlur convolutionFeedback reactionDiffusion synth3d_cellularAutomata3d synth3d_reactionDiffusion3d"
 GRADE_FRAMES="1 2 8"          # frames captured + graded (per-effect verdict below)
 
 stage=1
@@ -95,6 +98,11 @@ echo "=== motionBlur (rgba8 feedback — f1/f2 strict, f8 SSIM-gated for 8-bit r
 if grade motionBlur 1 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
 if grade motionBlur 2 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
 if grade motionBlur 8 3.001 0.999; then pass=$((pass+1)); else fail=$((fail+1)); fi
+
+echo "=== convolutionFeedback (rgba8 feedback-convolution — f1/f2 strict, f8 SSIM-gated for 8-bit re-quant drift) ==="
+if grade convolutionFeedback 1 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+if grade convolutionFeedback 2 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi
+if grade convolutionFeedback 8 255   0.99; then pass=$((pass+1)); else fail=$((fail+1)); fi
 
 echo "=== reactionDiffusion (continuous Gray-Scott — seed/f1/f2 strict, f4+ chaos-gated) ==="
 if grade reactionDiffusion 1 2.001 0.98; then pass=$((pass+1)); else fail=$((fail+1)); fi

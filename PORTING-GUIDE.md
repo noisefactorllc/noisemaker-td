@@ -45,7 +45,20 @@ For each `effects/<ns>/<name>/glsl/<prog>.glsl` → `td/noisemaker/shaders/effec
    are injected by the builder at network-build time as `#define` lines **above** the source; the
    `#ifndef` fallbacks defer to them. This matches the reference `injectDefines` exactly.
 
-Result: **226 of 247 programs** convert cleanly. The 21 flagged are all MRT (below).
+6. **`v_texCoord` varying → `vUV.st`.** The reference's vertex-stage varying `v_texCoord` is not
+   declared by TD's GLSL TOP preamble; emit `#define v_texCoord vUV.st` (TD's built-in texture-coord
+   varying). Without it the handful of effects that read `v_texCoord` (`grime`, `spookyTicker`,
+   `texture`, `wobble`) fail to LINK on the missing varying.
+
+7. **std140 uniform block → `uniform vec4 data[N]`.** An effect that declares a
+   `layout(std140) uniform <Block> { … }` (only `remap`) is rewritten to a flat `uniform vec4 data[N]`
+   array (`RemapUniforms` → `vec4 data[267]`), fed at build time from the GLSL TOP **Arrays page** (a
+   "Uniform Array" CHOP) and packed by `uniform_binder.pack_uniforms_with_layout` per the effect's
+   `uniformLayout`. convert-shaders flags this as `UNIFORM_ARRAY` — the one **non-MRT** flagged
+   program — because the Arrays-page wiring lives in `td_backend`, not in the `.frag`.
+
+Result: **227 of 249 programs** convert cleanly. The **22 flagged = 21 MRT** (below) **+ 1 std140-UBO**
+(`remap`, step 7).
 
 ## Y-origin
 
@@ -55,19 +68,22 @@ are both OpenGL bottom-left (reference/04 §3: WebGL2 textures are bottom-left; 
 flip). The `--flip-y` contingency (route `gl_FragCoord` through an `nm_FragCoord` that flips about
 `uTDOutputInfo.res.w`) exists but is unused.
 
-## Manual procedure — MRT programs (the 21 flagged)
+## Manual procedure — MRT programs (21 flagged)
 
-Multi-output shaders (`points/*/agent` 3-buffer state, `render/*/render3d` `fragColor+geoOut`,
-`synth3d/*/precompute`, `filter3d/flow3d`) are emitted verbatim with a `// NM_OUTPUT: MRT …` header
-and need hand-finishing:
+Multi-output shaders are emitted verbatim with a `// NM_OUTPUT: MRT …` header and need hand-finishing.
+They span the agent/particle **state** passes (`points/*/agent`, `pointsEmit`/`pointsInit`, `lenia`,
+`agentField` — 3-buffer state), the 3D-volume **render** passes (`render/*/render3d`, `renderLit3d`,
+`renderCubemap3D`, `renderCubemapSurface` — e.g. `fragColor + geoOut`), the 3D **precompute** passes
+(`synth3d/*/precompute`), and the 3D-agent flow (`filter3d/flow3d/agent`). All are implemented and
+gated. The procedure:
 
 1. Declare outputs with explicit locations: `layout(location = N) out vec4 <name>;`.
 2. Apply `TDOutputSwizzle` per output (or none, for non-color state buffers — raw float state must
    NOT be swizzled).
 3. In `td_backend`, set the GLSL TOP's color-buffer count and add a **Render Select TOP** per extra
    buffer so downstream passes can read buffers 1..N.
-4. `points` scatter passes additionally need a Geometry COMP + GLSL MAT + Render TOP (Phase 5.5);
-   the GLSL TOP is fragment-only.
+4. `points` scatter passes additionally need a Geometry COMP + GLSL MAT + Render TOP (the GLSL TOP is
+   fragment-only); implemented in `deposit_shaders.py` + `td_backend._build_scatter`.
 
 ## Uniform contract
 
@@ -97,7 +113,7 @@ The builder feeds them via the GLSL TOP **Vectors** page from Python (`uniform_b
 | Texture **filtering** (NEAREST vs linear) | **RESOLVED** — set GLSL TOP `inputfiltertype = 'nearest'`. The reference creates every intermediate *surface* with `NEAREST` min/mag (`webgl2.js` texParameteri; WebGPU mirrors it). TD defaults to linear ("Interpolate Pixels"). Identical for 1:1 effects (sample lands on a texel centre) but **every warp/resample** (`polar`, `pinch`, `distortion`, `uvRemap`, `chromaticAberration`, bloom upsample, …) diverges under linear — was a 10-effect cluster of small broad diffs. |
 | Boolean `#define` injection | **RESOLVED** — a define whose in-shader `#ifndef` fallback is `true`/`false` (e.g. `RIDGES`) is injected as `true`/`false`, not `1`/`0`. The reference emits `1` and relies on WebGL2/ANGLE accepting `if (1)`; TD's strict `#version 460` core rejects a non-bool `if` condition (the `curl` compile error → red/blue placeholder). |
 | `'none'` / unbound input sampler | **RESOLVED** — wired to a 1×1 transparent-black Constant TOP (reference binds a 1×1 `[0,0,0,0]`). Also makes TD declare `sTD2DInputs` for a filter-as-generator used with no input (`subdivide`: `'sTD2DInputs' : undeclared identifier`). |
-| Feedback / cross-frame (`feedback`'s `selfTex`) | **WIRED** — a texId read by an earlier pass than the one that writes it is a back-edge; the read routes through a **Feedback TOP** (Target = the producer) to break the cook cycle, and the renderer drives the golden's frame count (8). Single-step `feedback` matches; multi-frame *accumulation* (trails/sims) is Phase 5.5. |
+| Feedback / cross-frame (`feedback`'s `selfTex`) | **WIRED** — a texId read by an earlier pass than the one that writes it is a back-edge; the read routes through a **Feedback TOP** (Target = the producer) to break the cook cycle, and the renderer drives the golden's frame count (8). Single-step `feedback` matches; multi-frame *accumulation* (trails/sims) is **RESOLVED** via the evolve harness (`parity/accumulate.sh`, 8-frames-from-zero — see `docs/CHAOS-GATE.md`). |
 | Texture format / sRGB | Linear only (`rgba16f`→16-bit float RGBA, never sRGB), set per-TOP by the builder. |
 | Cross-device float (MoltenVK/Metal vs ANGLE) | Inherent; absorbed by the SSIM≥0.98 / max-diff≤2 tolerance, same as the sibling ports. |
 

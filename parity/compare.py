@@ -69,7 +69,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("golden", type=Path, help="Reference golden PNG")
-    parser.add_argument("candidate", type=Path, help="Unity-rendered candidate PNG")
+    parser.add_argument("candidate", type=Path, help="TouchDesigner-rendered candidate PNG")
     parser.add_argument("--name", default=None, help="Program name for the report")
     # Default 2/255 mirrors a tight cross-backend tolerance; loosen per-program
     # for stochastic/feedback effects via --tolerance.

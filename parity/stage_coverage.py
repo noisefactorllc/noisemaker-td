@@ -39,8 +39,9 @@ BATCH = os.path.join(REPO, 'parity', 'batch-golden.mjs')
 
 # Multi-frame feedback-accumulation effects — driven by the evolve harness (the single-frame sweep
 # can't accumulate their feedback). Reported here, not rendered as single-frame goldens.
-# convolutionFeedback is the same class (a `feedbackTex` temporal blend); evolve-validated at f8
-# ssim 0.99483 (8-bit-feedback drift, like motionBlur — Metal vs ANGLE convolution over frames).
+# convolutionFeedback is the same class (a `feedbackTex` temporal blend); driven + graded by
+# parity/accumulate.sh — f1/f2 byte-exact, f8 ssim 0.99483 (8-bit-feedback drift, like motionBlur —
+# Metal vs ANGLE convolution over frames).
 # The synth3d_* pair are the 3D-volume statefuls (a `<sim>3d().render3d()` chain over a ca_state /
 # rd_state feedback volume): same feedback class, graded by parity/accumulate.sh — f1/f2 bit-exact
 # (max-abs-diff=1), then cellularAutomata3d ssim-gated (0.996 @ f8) and reactionDiffusion3d chaos-

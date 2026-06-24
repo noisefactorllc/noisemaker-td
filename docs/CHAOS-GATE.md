@@ -59,13 +59,13 @@ No NaN, no white-out, bounded over 1800 frames. Two fixes ported from `noisemake
   over-deposits ~8× vs ANGLE). A hi/lo split keeps the products small so `fract` stays exact
   (`td/noisemaker/runtime/deposit_shaders.py`, `nm_particleRandom`).
 - **nav input clamp to [0,1]** — bounds the HDR particle-field surface this pipeline hands
-  navierStokes (`shaders/effects/synth/navierStokes/nsSplat.frag`, `ns.frag`; re-apply after
-  re-transpile).
+  navierStokes (`td/noisemaker/shaders/effects/synth/navierStokes/nsSplat.frag`, `ns.frag`; re-apply
+  after re-transpile).
 
 ### Evidence — the divergence is below the chaos, not in the port
 | Test | What it isolates | Result |
 | --- | --- | --- |
-| `parity/sweep.sh` (72 effects) | every single-pass synth/filter/mixer/cnd + channelCombine | **72/72**, 66 strict `max-diff ≤ 1` |
+| `parity/sweep.sh` (single-pass 2D catalog) | every single-pass synth/filter/mixer/cnd + channelCombine | **~139 at parity**, most strict `max-diff ≤ 1` |
 | navierStokes standalone (`parity/evolve.sh`) | the fluid solver alone, static seed, 30 s / 5 s | frame 1 ssim **0.99998**, steady-state corr **0.9994** |
 | `target_particles` x128 (`parity/evolve.sh`) | the particle subchain without the nav feedback | ssim **0.92** (no chaos) |
 | `target.dsl` f30 (pre-chaos) | the full chain before nav amplification dominates | ssim **0.986** |
@@ -101,9 +101,12 @@ can't reproduce against itself. Gated on the early frames; f4+ reported, not fai
 at every frame** cross-backend — discreteness is the cure for the chaos. It is not gated.)
 
 ## Scope — exactly these two classes; everything else is strict
-Bit-exact / strict-gated (verified): all 72 `sweep.sh` effects, `cellularAutomata` (all frames),
-`motionBlur` f1/f2 (then a mild SSIM-gated 8-bit-feedback re-quant drift at f8, not chaos), the
-navierStokes solver in isolation, the full deposit/diffuse/blend path, agent spawn/MRT state.
+Bit-exact / strict-gated (verified): the whole single-pass 2D catalog (~139 effects via `sweep.sh`),
+`cellularAutomata` (all frames), `motionBlur` f1/f2 (then a mild SSIM-gated 8-bit-feedback re-quant
+drift at f8, not chaos), the navierStokes solver in isolation, the full deposit/diffuse/blend path,
+agent spawn/MRT state. The two 3D-volume statefuls `cellularAutomata3d`/`reactionDiffusion3d` join the
+accumulate set (f1/f2 max-diff ≤ 1, `reactionDiffusion3d` bit-exact; then `cellularAutomata3d` f8 SSIM
+~0.996 ssim-gated and `reactionDiffusion3d` f8 SSIM ~0.977 chaos-reported, Class 2).
 
 Chaos-gated by design: `target.dsl` full chain (Class 1) and `reactionDiffusion` f4+ (Class 2).
 
@@ -113,9 +116,11 @@ Chaos-gated by design: `target.dsl` full chain (Class 1) and `reactionDiffusion`
 NM_FRAMES=1800 NM_SAMPLES=30,300,600,1200,1800 parity/evolve.sh target
 #   → f30 ssim 0.986   …   f300+ ssim ~0.5–0.71
 
-# Class 2 — reactionDiffusion early-exact then divergent (+ cellularAutomata/motionBlur):
+# Class 2 — reactionDiffusion early-exact then divergent (accumulate.sh drives 5 feedback effects):
 parity/accumulate.sh
-#   → reactionDiffusion f1/f2 bit-exact, f8 chaos-gated; cellularAutomata 0/0/0; motionBlur ssim 0.99992
+#   → cellularAutomata 0/0/0 (byte-exact); motionBlur f8 ssim 0.99992; reactionDiffusion f1/f2
+#     bit-exact then f8 chaos-gated; + cellularAutomata3d (f8 ssim ~0.996) and reactionDiffusion3d
+#     (f8 ssim ~0.977), the two 3D-volume statefuls
 
 # The golden is not reproducible against itself for reactionDiffusion (the proof it's intrinsic):
 node parity/batch-golden.mjs <(echo "rd parity/programs/reactionDiffusion.dsl") /tmp/a --frames 8 --timestep 0

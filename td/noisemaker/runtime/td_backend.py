@@ -10,12 +10,13 @@ state become Feedback TOPs (via `surface_manager`).
 Touches the TouchDesigner Python API — only runs inside a TD process.
 
 Coverage:
-  * DONE (Tier-1 path): effect passes (single output), blit passes, pooled-texture wiring,
+  * Single-pass path: effect passes (single output), blit passes, pooled-texture wiring,
     per-pass define overrides, named-input -> sTD2DInputs ordering, custom resolution/format,
-    uniform binding, `repeat` via the Passes param.
-  * MARKED (Phase 5.5): MRT outputs (draw_buffers>1) need a Render Select TOP per extra
-    buffer; `drawMode:"points"` needs a Geometry COMP + GLSL MAT + Render TOP; full
-    cross-frame surface feedback is delegated to surface_manager.
+    uniform binding, `repeat` unrolled into N chained GLSL TOPs (TD's Passes param has unreliable
+    previous-pass feedback semantics — deliberately not used).
+  * MRT / agents / 3D: MRT outputs (draw_buffers>1) get a Render Select TOP per extra buffer;
+    `drawMode:"points"` scatter via a Geometry COMP + GLSL MAT + Render TOP; std140 UBO effects
+    (remap) via the Arrays page; cross-frame surface feedback via surface_manager.
 """
 import os
 import re

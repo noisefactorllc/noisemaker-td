@@ -1,5 +1,12 @@
 # Noisemaker → TouchDesigner Port — Implementation Plan
 
+> **⚠ HISTORICAL — this is the original staged build plan, frozen around Phase 6.** The project has
+> since advanced well beyond it: the whole 2D catalog, the full 3D volume/cubemap namespace, agents,
+> std140 UBO, multi-frame feedback (resolved), and the live DSL compiler wired into
+> `NMRenderer.set_dsl` rendering the blaster corpus end-to-end. For **current** status, counts, and
+> capabilities see **`README.md`** ("What works today") and **`ARCHITECTURE.md`**. The phase boxes
+> below are a record of how the port was built, not its present state. Last reconciled 2026-06-24.
+
 **Goal:** A structural port of the Noisemaker shader engine (its `shaders/`, reached via
 `NM_REFERENCE_ROOT`) to **TouchDesigner 2025.32820+**, mirroring the Unity/HLSL (`noisemaker-hlsl`)
 and Godot (`noisemaker-godot`) ports: live procedural texture from the Polymorphic DSL, rendered
@@ -8,7 +15,8 @@ through a Python-built **GLSL TOP** network, tolerance-parity to the JS/WebGL2 r
 **Architecture (see ARCHITECTURE.md at the repo root):** the seam is the **Render Graph JSON**
 (`compileGraph(dsl) → {passes, programs, textures, renderSurface}`). Two producers: (a)
 golden/offline — the *unchanged* reference JS via reused `tools/export-graph.mjs`; (b)
-live/in-engine — a staged TD-Python DSL frontend (Phase 6). Both feed one consumer: the TD
+live/in-engine — the TD-Python DSL frontend (`td/noisemaker/compiler/`, complete and wired into
+`NMRenderer.set_dsl`). Both feed one consumer: the TD
 **network builder** (`td/noisemaker/runtime/td_backend.py`), which translates the graph into a
 network of GLSL TOPs that TouchDesigner cooks each frame.
 
@@ -43,10 +51,10 @@ network of GLSL TOPs that TouchDesigner cooks each frame.
 
 ## Phase 1 — Generated assets  ✅ DONE
 
-- [x] `convert-definitions.mjs` → **182** effect-definition JSONs (`td/noisemaker/effects/<ns>/*.json`),
+- [x] `convert-definitions.mjs` → **184** effect-definition JSONs (`td/noisemaker/effects/<ns>/*.json`),
       0 failures.
-- [x] `convert-shaders.mjs` (NEW) → **247** TD `.frag` programs; **226 auto-transpiled**, **21 MRT
-      flagged** (points/agents, 3D renderers, synth3d precompute — Phase 5.5).
+- [x] `convert-shaders.mjs` (NEW) → **249** TD `.frag` programs; **227 auto-transpiled**, **22 flagged**
+      (21 MRT — points/agents, 3D renderers, synth3d precompute — + 1 std140-UBO, `remap`).
 - [x] 8 Tier-1 golden graph JSONs (`parity/out/*.graph.json`) + 8 golden PNGs (reference render,
       reused from the identical-DSL Godot port).
 
@@ -127,7 +135,7 @@ classifies the in-repo DSLs and renders their reference goldens from the upstrea
       3D volume atlas + raymarch + geoOut) is ready to do, but gating needs a working golden source.
 - [x] Coverage tracked in README; per-effect tolerances + rationale live in `parity/sweep.sh`.
 
-## Phase 6 — Live TD-Python DSL compiler  ✅ DONE — 94/95 corpus byte-clean graph-parity
+## Phase 6 — Live TD-Python DSL compiler  ✅ DONE — 185/186 corpus graph-parity, wired into set_dsl
 
 Ported `reference/01–03` (+ expander/resources/04) to Python under `td/noisemaker/compiler/`,
 **mirroring `noisemaker-hlsl/unity/com.noisemaker.hlsl/Compiler/` file-for-file** (~6.7k C# LOC):
@@ -136,8 +144,8 @@ palette_expansion}` + `graph/{dim,resources}` + `dsl_compiler` (orchestrator). T
 (`UniformValue`/`ArgValue`/`Dim`/`OrderedMap`/`JsonValue`) collapses to native Python values + dicts;
 AST nodes are plain dicts matching the reference JS objects; clone = `copy.deepcopy`.
 - [x] **4 staged parity gates** vs the reference (`parity/compiler/check_{lex,parse,validate,graph}.py`
-      + `tools/dump-{tokens,ast,validated}.mjs`): **lexer / parser / validator 95/95 byte-exact** vs
-      reference `lex`/`parse`/`compile`; **graph 94/95 byte-clean** vs the `export-graph.mjs` oracle
+      + `tools/dump-{tokens,ast,validated}.mjs`): **lexer / parser / validator 186/186 byte-exact** vs
+      reference `lex`/`parse`/`compile`; **graph 185/186 byte-clean** vs the `export-graph.mjs` oracle
       (the 1 skip `B5oBsA` references a nonexistent effect — the reference rejects it too).
 - [x] Corpus = the **blaster** compositions (`parity/corpus/`, from `noisemaker-hlsl/parity/corpus`)
       + the 73 `parity/programs/`. Points/agent comps compile clean (WebGL2 graph = `drawMode:"points"`
@@ -145,8 +153,9 @@ AST nodes are plain dicts matching the reference JS objects; clone = `copy.deepc
 - [x] Two parity fixes beyond hlsl: define-suffix order keys off the **sorted global key** (not the
       define name — hlsl's re-sort is a latent bug its 12-prog corpus never hit); osc **object
       uniforms serialized** (hlsl stages them null).
-- [ ] **NEXT:** wire `compile_graph(dsl, reg)` into `nm_renderer.set_dsl(src)` (live TD rendering from
-      DSL source) + render real blaster comps in TD for renderer/shader-library parity.
+- [x] **DONE:** `compile_dsl` is wired into `nm_renderer.set_dsl(src)` (live in-engine compile → build);
+      the blaster corpus renders live in TD via `parity/corpus_sweep.sh` (`NM_LIVE_DSL`) — 24/24
+      renderable, chaos-gated.
 
 ---
 

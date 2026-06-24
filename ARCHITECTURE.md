@@ -16,8 +16,10 @@ engine renders it" is the normalized **Render Graph JSON**
 
 - **Golden / offline** — the *unchanged* reference JS `compileGraph`, via the reused
   Node tool `tools/export-graph.mjs`. Zero parity risk: it is literally the reference.
-- **Live / in-engine** — a staged TouchDesigner-Python DSL frontend (`td/noisemaker/compiler/`,
-  Phase 6) that emits byte-identical normalized JSON.
+- **Live / in-engine** — the TouchDesigner-Python DSL frontend (`td/noisemaker/compiler/`), a
+  complete `lex → parse → validate → expand → resources` port of the Polymorphic DSL compiler that
+  emits byte-identical normalized JSON (graph-parity-clean **185/186** vs the `export-graph.mjs`
+  oracle) and is wired into `NMRenderer.set_dsl`.
 
 Both feed **one consumer**: the TouchDesigner network builder.
 
@@ -41,8 +43,8 @@ graph JSON → TOPs, plus a thin per-frame uniform/time feed.
 | `outputs{color,color1,...}` MRT | GLSL TOP **# of Color Buffers** > 1                                  |
 | `uniforms{name:value}`          | GLSL TOP **Vectors** page (`vecNname`/`vecNvalue*`) or an **Arrays** CHOP |
 | `defines{KEY:val}`              | `#define KEY val` baked into the `.frag` at transpile time           |
-| `drawMode:"points"` (scatter)   | Geometry COMP + GLSL MAT + Render TOP (Phase 5, hardest)             |
-| `repeat:"iterations"`           | GLSL TOP **Passes** param, or a chain / Feedback loop                |
+| `drawMode:"points"` (scatter)   | Geometry COMP + GLSL MAT + Render TOP (implemented)                  |
+| `repeat:"iterations"`           | unrolled into a **chain of N GLSL TOPs** (TD's Passes param has unreliable previous-pass feedback semantics — deliberately not used) |
 | `renderSurface`                 | the presented **Out/Null TOP**                                       |
 
 ## Shader strategy: translate from the reference **GLSL**, not WGSL
@@ -55,7 +57,7 @@ raster convention as the reference's WebGL2 backend.** Consequences:
 1. **Source of truth for the TD port is the upstream engine's `shaders/effects/<ns>/<name>/glsl/*.glsl`**
    (the reference's shipping WebGL2 shaders, under `NM_REFERENCE_ROOT`), cross-checked against WGSL only when a
    GLSL file is absent. These are already parity-tested against WGSL by the reference.
-2. The per-effect transform is **mechanical**, so most of the 182 effects are
+2. The per-effect transform is **mechanical**, so most of the 184 effects are
    **auto-transpiled** by `tools/convert-shaders.mjs` rather than hand-ported. The
    transform (see `PORTING-GUIDE.md`):
    - strip the `#version 300 es` / `precision` header (TD prepends its own `#version`);
@@ -79,16 +81,19 @@ Y-flip** (unlike the HLSL port, which needed a flip at `NMBlit`). Because TD 202
 on a Vulkan/MoltenVK backend, this is **verified empirically at bring-up** (Task 2.3:
 render a `vUV.t` gradient and a real `gradient` effect, compare to the golden). The
 transpiler routes all coordinate reads through `nm_FragCoord`/`nm_uv`, so if a flip is
-needed it is a **one-line change in one helper** (`NM_FLIP_Y`), not a 182-shader edit.
+needed it is a **one-line change in one helper** (`NM_FLIP_Y`), not a 184-shader edit.
 
 ## Parity strategy
 
-Golden truth = the reference's own output. For each Tier-1 program:
+Golden truth = the reference's own output. For each staged parity program:
 `export-graph.mjs` (graph JSON) + `export-and-render.mjs` (golden PNG via the reference
 WebGL2 engine) → then the TD candidate render → `compare.py` (max-abs-diff + SSIM).
 Targets, as on the other ports: SSIM ≥ 0.98, max-abs-diff ≤ 1–2/255 (cross-device
-bit-exactness is impossible: MoltenVK/Metal vs ANGLE/WebGL2). **Achieved: 8/8 Tier-1 at
-SSIM ≥ 0.99998, max-diff ≤ 1.**
+bit-exactness is impossible: MoltenVK/Metal vs ANGLE/WebGL2). **Achieved: the whole 2D catalog
+(~139 single-pass effects — most byte-exact, a handful SSIM-gated at discontinuities), the full
+3D volume/cubemap namespace (`render3d`/`renderLit3d` SSIM ~1.0/max-diff 1, 6-face cubemap bake
+max-diff ≤ 1), stateful/feedback effects through the evolve harness (chaos-gated — see
+`docs/CHAOS-GATE.md`), and the live blaster corpus end-to-end (24/24 renderable).**
 
 The TD candidate is produced **fully scripted, no GUI clicking** (`parity/run.sh`): build a
 bootstrap `.toe` (`td/build_parity_toe.py` — an Execute DAT authored offline via

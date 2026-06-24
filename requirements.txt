@@ -1,0 +1,6 @@
+# Python dependencies for the parity tooling ONLY (parity/compare.py: image diff + SSIM).
+# The TouchDesigner runtime + live DSL compiler import only the stdlib and TD's built-in `td`
+# module — nothing here is needed to render inside TouchDesigner.
+#   python3 -m venv parity/.venv && parity/.venv/bin/pip install -r requirements.txt
+numpy
+pillow

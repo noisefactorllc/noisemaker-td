@@ -36,7 +36,9 @@ The GLSL TOP runs a **fragment** shader over the output raster (vertex stage sup
 ## Multi-pass, feedback, resolution, time
 
 - **Intra-frame iteration:** the GLSL TOP **`Passes`** param duplicates the op N times, feeding output
-  → input 1 each iteration; `uTDPass` increments. Good for iterative effects.
+  → input 1 each iteration (`uTDPass` increments). **This port deliberately does NOT use it** — its
+  previous-pass feedback semantics are unreliable; the builder instead **unrolls `repeat=N` into N
+  chained GLSL TOPs** (`td_backend.py`).
 - **Cross-shader:** chain GLSL TOPs (pull dataflow).
 - **Cross-frame:** the **Feedback TOP** outputs its **Target TOP**'s previous-frame result (one-frame
   delay) — accumulation, trails, reaction-diffusion. Params: `target`, `reset`/`resetpulse`.
@@ -149,7 +151,7 @@ texture); `render3d` / `renderLit3d` then raymarch it. Two TD-specific fixes (bo
 
 Isolation harness: `parity/evolve.sh <prog>` with `NM_DUMP_PROG=<prog>` and `NM_DUMP_TEXID=<texId>`.
 
-**mat3 cubeBasis — RESOLVED (renderCubemap3d + renderCubemapSurface now max-diff 1, ssim ~1.0).**
+**mat3 cubeBasis — RESOLVED (renderCubemap3D + renderCubemapSurface now max-diff 1, ssim ~1.0).**
 Both cube-face renderers steer rays with `uniform mat3 cubeBasis`, and the old
 `uniform_binder._as_components` truncated any list to 4 floats onto the GLSL TOP **Vectors** page —
 a `mat3` (9 floats) can't live there, so `cubeBasis` stayed the TD default (the **zero** matrix →
