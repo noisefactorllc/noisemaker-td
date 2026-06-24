@@ -47,8 +47,9 @@ def main():
     panel_w = int(text_w) + pad * 2
     panel_h = len(dsl) * lh + pad * 2 + 40        # +40 for the title row
 
-    # right panel: canvas scaled square to ~ the DSL height (capped), min 512
-    disp = max(512, min(panel_h - pad * 2 - 40, 900))
+    # right panel: canvas shown at native size (so a 1024 render presents at 1024),
+    # bounded by the DSL-text height and a sane max; min 512.
+    disp = max(512, min(canvas.width, panel_h - pad * 2 - 40, 1100))
     canvas_disp = canvas.resize((disp, disp), Image.LANCZOS)
 
     H = max(panel_h, disp + pad * 2 + 40)
