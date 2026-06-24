@@ -204,5 +204,6 @@ NM_REFERENCE_ROOT=/path/to/noisemaker node tools/export-graph.mjs --file parity/
 
 ## License
 
-MIT (port scaffolding). The Noisemaker engine and effects are the reference project's; TouchDesigner is
-Derivative's. See the upstream Noisemaker project for upstream terms.
+Released under the MIT License (see [LICENSE](LICENSE)). Use of the Noisemaker and Noise Factor names in derivative products is subject to the [Trademark Policy](TRADEMARK.md).
+
+Copyright © 2026 Noise Factor LLC
