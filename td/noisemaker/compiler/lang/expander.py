@@ -587,7 +587,7 @@ class _Expander:
                 'drawBuffers': None,
                 'count': None,
                 'countMode': None,
-                'blend': False,
+                'blend': None,
                 'repeat': None,
                 'defines': dict(defines),
                 'uniforms': {},
@@ -606,8 +606,11 @@ class _Expander:
                 p['count'] = int(count_val)
             elif isinstance(count_val, str):
                 p['countMode'] = count_val
-            blend = pass_def.get('blend')
-            p['blend'] = blend is True
+            # Preserve the RAW blend value (reference expander.js: `blend: passDef.blend`).
+            # `True` (additive ONE/ONE), an explicit factor pair like ['ONE','ONE_MINUS_SRC_ALPHA']
+            # (pointsBillboardRender deposit_alpha), or None when the pass declares no blend field.
+            # Coercing the array to a bool here dropped it from the graph and broke graph parity.
+            p['blend'] = pass_def.get('blend')
             repeat = pass_def.get('repeat')
             if _is_number(repeat):
                 p['repeat'] = int(repeat)
@@ -864,7 +867,7 @@ class _Expander:
             'drawBuffers': None,
             'count': None,
             'countMode': None,
-            'blend': False,
+            'blend': None,
             'repeat': None,
             'defines': {},
             'uniforms': {},

@@ -30,6 +30,15 @@
       "type": "surface",
       "default": "none"
     },
+    "blendMode": {
+      "type": "int",
+      "default": 0,
+      "uniform": "blendMode",
+      "choices": {
+        "additive": 0,
+        "alpha": 1
+      }
+    },
     "depositOpacity": {
       "type": "float",
       "default": 20,
@@ -191,7 +200,57 @@
       },
       "drawMode": "billboards",
       "count": "input",
-      "blend": true
+      "blend": true,
+      "conditions": {
+        "runIf": [
+          {
+            "uniform": "blendMode",
+            "equals": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "deposit_alpha",
+      "program": "deposit",
+      "inputs": {
+        "xyzTex": "global_xyz",
+        "rgbaTex": "global_rgba",
+        "spriteTex": "tex"
+      },
+      "uniforms": {
+        "shapeMode": "shapeMode",
+        "depositOpacity": "depositOpacity",
+        "density": "density",
+        "pointSize": "pointSize",
+        "sizeVariation": "sizeVariation",
+        "rotationVar": "rotationVar",
+        "seed": "seed",
+        "viewMode": "viewMode",
+        "rotateX": "rotateX",
+        "rotateY": "rotateY",
+        "rotateZ": "rotateZ",
+        "viewScale": "viewScale",
+        "posX": "posX",
+        "posY": "posY"
+      },
+      "outputs": {
+        "fragColor": "global_billboard_trail"
+      },
+      "drawMode": "billboards",
+      "count": "input",
+      "blend": [
+        "ONE",
+        "ONE_MINUS_SRC_ALPHA"
+      ],
+      "conditions": {
+        "runIf": [
+          {
+            "uniform": "blendMode",
+            "equals": 1
+          }
+        ]
+      }
     },
     {
       "name": "blend",
@@ -201,7 +260,8 @@
         "trailTex": "global_billboard_trail"
       },
       "uniforms": {
-        "inputIntensity": "inputIntensity"
+        "inputIntensity": "inputIntensity",
+        "blendMode": "blendMode"
       },
       "outputs": {
         "fragColor": "outputTex"

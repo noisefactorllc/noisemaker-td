@@ -113,6 +113,12 @@ function projectPass (pass) {
   if (pass.clear !== undefined) out.clear = pass.clear
   if (pass.type !== undefined) out.type = pass.type
   if (pass.entryPoint !== undefined) out.entryPoint = pass.entryPoint
+  // Per-pass runIf/skipIf gating (reference Pipeline.shouldSkipPass). The reference normalized
+  // GRAPH drops this (the expander never serializes it), so it never reaches the render-graph
+  // diff; the TD backend reads it straight off the effect JSON to gate build-time pass emission
+  // (mirrors how uniformLayout is read here, not from the graph). Only pointsBillboardRender's
+  // two deposit passes carry it today.
+  if (pass.conditions !== undefined) out.conditions = pass.conditions
   return out
 }
 

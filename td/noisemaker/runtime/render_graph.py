@@ -46,9 +46,15 @@ class Pass:
     count: Any = None
     count_uniform: Optional[str] = None
     draw_buffers: int = 1                    # MRT attachment count
-    blend: bool = False                      # additive (Blend One One)
+    # Raw blend spec: True (additive Blend One One), a factor pair like
+    # ['ONE','ONE_MINUS_SRC_ALPHA'] (premultiplied OVER), or None (no blend declared).
+    blend: Any = None
     repeat: Any = None                       # int | uniform-name
     clear: Any = None
+    # Per-pass runIf/skipIf gating (reference Pipeline.shouldSkipPass). NOT present in the
+    # serialized graph (the reference expander drops it); the TD backend loads it from the
+    # effect JSON and attaches it before building. {runIf|skipIf: [{uniform, equals}]}.
+    conditions: Optional[dict] = None
     # metadata
     effect_key: Optional[str] = None
     node_id: Optional[str] = None
@@ -75,6 +81,17 @@ class Pass:
     def is_mrt(self) -> bool:
         return (self.draw_buffers or 0) > 1 or len(self.outputs) > 1
 
+    @property
+    def blend_factors(self):
+        """Resolve the raw blend spec to a (src, dst) factor-name pair, or None for no blend.
+        `True` -> additive ONE/ONE; a 2-element list -> that explicit pair (case-insensitive)."""
+        b = self.blend
+        if b is True:
+            return ("ONE", "ONE")
+        if isinstance(b, (list, tuple)) and len(b) == 2:
+            return (str(b[0]).upper(), str(b[1]).upper())
+        return None
+
     @staticmethod
     def from_dict(d: dict) -> "Pass":
         return Pass(
@@ -93,9 +110,10 @@ class Pass:
             count=d.get("count"),
             count_uniform=d.get("countUniform"),
             draw_buffers=int(d.get("drawBuffers", 1) or 1),
-            blend=bool(d.get("blend", False)),
+            blend=d.get("blend"),
             repeat=d.get("repeat"),
             clear=d.get("clear"),
+            conditions=d.get("conditions"),
             effect_key=d.get("effectKey"),
             node_id=d.get("nodeId"),
             step_index=int(d.get("stepIndex", 0) or 0),

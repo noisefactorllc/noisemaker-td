@@ -95,8 +95,12 @@ def _normalize_pass(p):
         out['countUniform'] = p['countUniform']
     if p['drawBuffers'] is not None:
         out['drawBuffers'] = p['drawBuffers']
-    if p['blend']:
-        out['blend'] = True
+    # Emit the RAW blend value when present (reference export-graph normalizePass:
+    # `if (pass.blend !== undefined) out.blend = pass.blend`). True for additive ONE/ONE,
+    # or a factor pair like ['ONE','ONE_MINUS_SRC_ALPHA'] for premultiplied-over deposit.
+    # None means the pass declared no blend field -> key stays absent.
+    if p['blend'] is not None:
+        out['blend'] = p['blend']
     if p['repeat'] is not None:
         out['repeat'] = p['repeat']
     out['effectKey'] = p['effectKey']          # always (null when absent)
