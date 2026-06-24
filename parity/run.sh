@@ -34,7 +34,7 @@ for p in $PROGS; do
   NM_REFERENCE_ROOT="$REF" node "$REPO/tools/export-graph.mjs" --file "$DSL" "$OUT/$p.graph.json" >/dev/null 2>&1 \
     || { echo "FAIL: export-graph $p"; exit 1; }
   [ -f "$OUT/$p.golden.png" ] || NM_REFERENCE_ROOT="$REF" node "$REPO/parity/export-and-render.mjs" \
-    "$p" "$OUT" --size "$SIZE" --time "$TIME" --backend webgl2 >/dev/null 2>&1 || true
+    "$DSL" "$OUT" --size "$SIZE" --time "$TIME" --backend webgl2 >/dev/null 2>&1 || true
 done
 
 # 2. bootstrap .toe
