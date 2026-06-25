@@ -105,7 +105,12 @@ uniform float pointSize;
 uniform float sizeVariation;
 uniform float seed;
 out vec4 vColor;
-float nm_hash(float n) { return fract(sin(n + seed) * 43758.5453123); }
+uint nm_hash_uint(uint s) {
+    uint state = s * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+float nm_hash(float n) { return float(nm_hash_uint(floatBitsToUint(n + seed))) / 4294967295.0; }
 void main() {
     int vid; vec4 pos; vec4 col;
     nm_agentTexel(vid, pos, col);
