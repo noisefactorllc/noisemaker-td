@@ -58,11 +58,18 @@ navier–stokes → palette → lighting → lens) as a live TouchDesigner netwo
 a PNG to `parity/out/`:
 
 ```bash
-parity/present_screenshot.sh            # a few minutes at 1024²; set NM_FRAMES=300 for a faster look
+parity/present_screenshot.sh            # a few minutes at 1024²; set NM_FRAMES=300 NM_SAMPLES=300 for a faster look
 ```
 
-It compiles the DSL with the in-engine compiler (no reference engine required) and leaves
-TouchDesigner open showing the result.
+It compiles the DSL with the in-engine compiler (no reference engine required), writes the rendered
+frame to `parity/out/<prog>.f1800.candidate.png`, and saves a screenshot to
+`parity/out/<prog>.tdshot.png`. On a successful capture it closes TouchDesigner; if the screen grab is
+blank (see the Screen-Recording note below) it leaves TouchDesigner open so you can view the result.
+
+> **Note:** The on-screen screenshot needs macOS Screen Recording permission for your terminal
+> (System Settings → Privacy & Security → Screen Recording) and numpy + Pillow
+> (`python3 -m venv parity/.venv && parity/.venv/bin/pip install -r requirements.txt`); without them the
+> render still saves to `parity/out/<prog>.f1800.candidate.png` but the screenshot step reports BLACK.
 
 **Every DSL program has the same shape:** name the namespaces it uses (`search synth, filter`), chain
 effects, write the result to an output surface (`.write(o0)`), then pick one to show (`render(o0)`).
